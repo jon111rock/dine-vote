@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DineVote - 投票頁面</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      font-family: 'PingFang TC', 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .gradient-button {
+      background: linear-gradient(to right, #FF8A80, #FF5252);
+      transition: all 0.3s ease;
+    }
+
+    .gradient-button:hover {
+      background: linear-gradient(to right, #FF5252, #FF1744);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .option-card {
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .option-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .option-card.selected {
+      border-color: #5E5CE6;
+      background-color: rgba(94, 92, 230, 0.05);
+    }
+
+    .progress-bar {
+      height: 4px;
+      background-color: #E0E7FF;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, #5E5CE6, #00B8D9);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+
+<body class="p-4">
+  <div class="max-w-md mx-auto">
+    <div class="card rounded-xl shadow-xl p-6 mb-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-800">晚餐去哪吃？</h1>
+        <div class="text-center">
+          <div class="text-xs text-gray-500">投票剩餘時間</div>
+          <div class="text-lg font-bold text-indigo-600">12:45</div>
+        </div>
+      </div>
+
+      <form>
+        <div class="mb-8">
+          <h2 class="text-sm font-bold text-gray-700 mb-3">1. 你偏好哪種主食？</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="option-card selected rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="rice" type="radio" name="food-type" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="rice" class="ml-2 block text-sm font-medium text-gray-700">
+                  飯食
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">米飯、燉飯、炒飯等</div>
+            </div>
+
+            <div class="option-card rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="noodle" type="radio" name="food-type" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="noodle" class="ml-2 block text-sm font-medium text-gray-700">
+                  麵食
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">麵條、義大利麵等</div>
+            </div>
+
+            <div class="option-card rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="other-food" type="radio" name="food-type" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="other-food" class="ml-2 block text-sm font-medium text-gray-700">
+                  其他
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">漢堡、三明治等</div>
+            </div>
+
+            <div class="option-card rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="no-pref-food" type="radio" name="food-type" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="no-pref-food" class="ml-2 block text-sm font-medium text-gray-700">
+                  沒意見
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">都可以</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-sm font-bold text-gray-700 mb-3">2. 你想吃什麼風味？</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="option-card rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="chinese" type="radio" name="cuisine" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="chinese" class="ml-2 block text-sm font-medium text-gray-700">
+                  中式
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">包含各地中華料理</div>
+            </div>
+
+            <div class="option-card selected rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="western" type="radio" name="cuisine" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="western" class="ml-2 block text-sm font-medium text-gray-700">
+                  西式
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">美式、法式等西方料理</div>
+            </div>
+
+            <div class="option-card rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="italian" type="radio" name="cuisine" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="italian" class="ml-2 block text-sm font-medium text-gray-700">
+                  義式
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">披薩、義大利麵等</div>
+            </div>
+
+            <div class="option-card rounded-lg p-3 bg-white shadow cursor-pointer">
+              <div class="flex items-center mb-2">
+                <input id="no-pref-cuisine" type="radio" name="cuisine" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                <label for="no-pref-cuisine" class="ml-2 block text-sm font-medium text-gray-700">
+                  沒意見
+                </label>
+              </div>
+              <div class="text-xs text-gray-500">都可以</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-sm font-bold text-gray-700 mb-3">3. 你的預算是？</h2>
+          <div class="px-2">
+            <input type="range" min="100" max="1000" value="500" step="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-xs text-gray-600 mt-1">
+              <span>$100</span>
+              <span>$500</span>
+              <span>$1000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <h2 class="text-sm font-bold text-gray-700 mb-3">4. 有其他建議嗎？</h2>
+          <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows="2" placeholder="有特別想吃的餐廳或食物嗎？"></textarea>
+        </div>
+
+        <div class="mb-8">
+          <label class="flex items-center">
+            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+            <span class="ml-2 block text-sm text-gray-700">
+              以上皆無意見，任何選擇都可以
+            </span>
+          </label>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-sm text-gray-700">已完成投票：<span class="font-medium text-indigo-600">2/3</span></p>
+            <div class="mt-1 w-32 progress-bar">
+              <div class="progress-fill" style="width: 66%"></div>
+            </div>
+          </div>
+          <button type="submit" class="gradient-button text-white font-medium py-2 px-6 rounded-lg">提交投票</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>
