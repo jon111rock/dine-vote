@@ -17,4 +17,10 @@ body {
     background: linear-gradient(to right, #FF8A80, #FF5252);
     
   }
+  
+  .selection {
+    border: 2px solid #3b82f6;
+    background-color: rgba(59, 130, 246, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+  }
 }

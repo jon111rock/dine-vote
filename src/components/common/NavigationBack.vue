@@ -1,4 +1,3 @@
-<!-- 接收一個 props 為返回的路徑，預設為上一頁 -->
 <script setup>
 import { useRouter } from 'vue-router';
 
