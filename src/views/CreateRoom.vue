@@ -6,7 +6,7 @@ import NavigationBack from '../components/common/NavigationBack.vue';
   <div class="flex items-center h-screen flex-col">
     <div class="w-full max-w-md">
       <NavigationBack backPath="/" />
-      <div class="w-full max-w-md bg-white rounded-lg p-8 shadow-lg">
+      <div class="w-full bg-white rounded-lg p-8 shadow-lg">
         <div>
           <p class="text-2xl font-bold text-gray-700">創建房間</p>
         </div>
