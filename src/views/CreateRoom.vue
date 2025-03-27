@@ -1,9 +1,11 @@
+<script setup>
+import NavigationBack from '../components/common/NavigationBack.vue';
+</script>
+
 <template>
   <div class="flex items-center h-screen flex-col">
     <div class="w-full max-w-md">
-      <div class="self-start py-5">
-        <p class="text-blue-600">← 返回</p>
-      </div>
+      <NavigationBack backPath="/" />
       <div class="w-full max-w-md bg-white rounded-lg p-8 shadow-lg">
         <div>
           <p class="text-2xl font-bold text-gray-700">創建房間</p>
@@ -35,7 +37,7 @@
           <p class="text-sm">投票截止時間</p>
           <div class="mt-2">
             <select id="expiryTime" class="w-full p-3 border border-gray-300 rounded-lg">
-            <option value="15">15分鐘</option>
+              <option value="15">15分鐘</option>
               <option value="30">30分鐘</option>
               <option value="60">1小時</option>
               <option value="120">2小時</option>
