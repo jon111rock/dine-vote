@@ -1,5 +1,8 @@
 <script setup>
+import { ref } from 'vue';
 import OptionGroup from '../components/voting/OptionGroup.vue';
+
+const selectedFood = ref(null);
 
 const options = [{
   label: '飯食',
@@ -30,7 +33,7 @@ const options = [{
         </div>
       </div>
       <div class="mt-4">
-        <OptionGroup :options="options" />
+        <OptionGroup v-model="selectedFood" :options="options" />
       </div>
     </div>
   </div>
