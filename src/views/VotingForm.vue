@@ -41,8 +41,8 @@ const flavorOptions = [{
 </script>
 
 <template>
-  <div class="flex items-center h-screen flex-col">
-    <div class="w-full max-w-md bg-gray-50 rounded-lg p-8 shadow-lg mt-4">
+  <div class="flex items-center flex-col">
+    <div class="w-full max-w-md bg-gray-50 rounded-lg p-8 shadow-lg mt-4 mb-6">
       <div class="flex justify-between items-center gap-2">
         <h1 class="text-xl font-bold">晚餐吃什麼 ?</h1>
         <div class="flex flex-col items-center">
@@ -64,7 +64,7 @@ const flavorOptions = [{
           title="2. 你偏好哪種口味 ?"
         />
       </div>
-      <div class="mt-4">
+      <div class="mt-8">
         <p class="text-sm">3. 你的預算是 ?</p>
         <input type="range" min="100" max="1000" class="w-full mt-4 h-2 appearance-none bg-gray-200 rounded-full cursor-pointer" />
         <div class="flex justify-between items-center">
@@ -72,6 +72,17 @@ const flavorOptions = [{
           <span class="text-xs text-gray-600">$500</span>
           <span class="text-xs text-gray-600">$1000</span>
         </div>
+      </div>
+      <div class="mt-8">
+        <p class="text-sm">4. 其他建議</p>
+        <textarea 
+          class="w-full mt-2 p-2 rounded-md border border-gray-300 bg-white" 
+          placeholder="有特別想吃的餐廳或食物嗎 ?" 
+          rows="3"
+        />
+      </div>
+      <div class="mt-8">
+        <button class="w-full bg-red-gradient text-white p-2 rounded-md cursor-pointer">送出</button>
       </div>
     </div>
   </div>
