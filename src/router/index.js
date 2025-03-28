@@ -3,6 +3,7 @@ import Home from '../views/Home.vue';
 import CreateRoom from '../views/CreateRoom.vue';
 import WaitingRoom from '../views/WaitingRoom.vue';
 import VotingForm from '../views/VotingForm.vue';
+import VotingResult from '../views/VotingResult.vue';
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/voting-form',
     name: 'VotingForm',
     component: VotingForm
+  },
+  {
+    path: '/voting-result',
+    name: 'VotingResult',
+    component: VotingResult
   }
 ];
 
