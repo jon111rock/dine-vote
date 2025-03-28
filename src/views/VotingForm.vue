@@ -66,11 +66,11 @@ const flavorOptions = [{
       </div>
       <div class="mt-4">
         <p class="text-sm">3. 你的預算是 ?</p>
-        <input type="range" min="100" max="1000" class="w-full mt-2 h-2 appearance-none bg-gray-200" />
+        <input type="range" min="100" max="1000" class="w-full mt-4 h-2 appearance-none bg-gray-200 rounded-full cursor-pointer" />
         <div class="flex justify-between items-center">
-          <span class="text-sm">$100</span>
-          <span class="text-sm">$500</span>
-          <span class="text-sm">$1000</span>
+          <span class="text-xs text-gray-600">$100</span>
+          <span class="text-xs text-gray-600">$500</span>
+          <span class="text-xs text-gray-600">$1000</span>
         </div>
       </div>
     </div>
