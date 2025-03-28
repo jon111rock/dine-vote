@@ -32,3 +32,16 @@ dist-ssr
 firebase-debug.log*
 firebase-debug.*.log*
 .firebase/
+
+# Design and Documentation
+src/design/
+docs/
+*.sketch
+*.fig
+*.xd
+*.psd
+*.ai
+
+# Project specific
+專案大綱.md
+專案進度總結.md
