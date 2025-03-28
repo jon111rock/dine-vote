@@ -64,6 +64,15 @@ const flavorOptions = [{
           title="2. 你偏好哪種口味 ?"
         />
       </div>
+      <div class="mt-4">
+        <p class="text-sm">3. 你的預算是 ?</p>
+        <input type="range" min="100" max="1000" class="w-full mt-2 h-2 appearance-none bg-gray-200" />
+        <div class="flex justify-between items-center">
+          <span class="text-sm">$100</span>
+          <span class="text-sm">$500</span>
+          <span class="text-sm">$1000</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
