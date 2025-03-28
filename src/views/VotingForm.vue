@@ -2,10 +2,12 @@
 import { ref } from 'vue';
 import OptionGroup from '../components/voting/OptionGroup.vue';
 import BudgetSlider from '../components/voting/BudgetSlider.vue';
+import CommentInput from '../components/voting/CommentInput.vue';
 
 const selectedFood = ref(null);
 const selectedFlavor = ref(null);
 const budget = ref(500);
+const comment = ref('');
 
 const foodOptions = [{
   label: '飯食',
@@ -43,8 +45,8 @@ const flavorOptions = [{
 </script>
 
 <template>
-  <div class="flex items-center h-screen flex-col">
-    <div class="w-full max-w-md bg-gray-50 rounded-lg p-8 shadow-lg mt-4">
+  <div class="flex items-center flex-col">
+    <div class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4 mb-4">
       <div class="flex justify-between items-center gap-2">
         <h1 class="text-xl font-bold">晚餐吃什麼 ?</h1>
         <div class="flex flex-col items-center">
@@ -68,8 +70,7 @@ const flavorOptions = [{
         />
       </div>
       <div class="mt-8">
-        <p class="text-sm">4. 其他建議</p>
-        <textarea class="w-full mt-2 p-2 rounded-md border border-gray-300 bg-white" placeholder="有特別想吃的餐廳或食物嗎 ?" rows="3" />
+        <CommentInput v-model="comment" />
       </div>
       <div class="mt-8">
         <button class="w-full bg-red-gradient text-white p-2 rounded-md cursor-pointer">送出</button>
