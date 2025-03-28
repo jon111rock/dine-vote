@@ -3,8 +3,9 @@ import { ref } from 'vue';
 import OptionGroup from '../components/voting/OptionGroup.vue';
 
 const selectedFood = ref(null);
+const selectedFlavor = ref(null);
 
-const options = [{
+const foodOptions = [{
   label: '飯食',
   description: '米飯、燉飯、炒飯等',
   value: 'rice',
@@ -16,6 +17,23 @@ const options = [{
   label: '其他',
   description: '漢堡、三明治、披薩等',
   value: 'other',
+}, {
+  label: '沒意見',
+  value: 'none',
+}]
+
+const flavorOptions = [{
+  label: '中式',
+  description: '炒飯、炒麵、炒麵等',
+  value: 'chinese',
+}, {
+  label: '西式',
+  description: '義大利麵、披薩、漢堡等',
+  value: 'western',
+}, {
+  label: '日式',
+  description: '拉麵、壽司、丼飯等',
+  value: 'japanese',
 }, {
   label: '沒意見',
   value: 'none',
@@ -33,7 +51,18 @@ const options = [{
         </div>
       </div>
       <div class="mt-4">
-        <OptionGroup v-model="selectedFood" :options="options" />
+        <OptionGroup 
+          v-model="selectedFood" 
+            :options="foodOptions" 
+          title="1. 你偏好哪種主食 ?"
+        />
+      </div>
+      <div class="mt-4">
+        <OptionGroup 
+          v-model="selectedFlavor" 
+          :options="flavorOptions" 
+          title="2. 你偏好哪種口味 ?"
+        />
       </div>
     </div>
   </div>

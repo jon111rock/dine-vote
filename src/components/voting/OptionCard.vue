@@ -33,6 +33,6 @@ const selectOption = () => {
             'scale-105': isSelected
           }" @click="selectOption">
     <p class="text-sm">{{ title }}</p>
-    <p class="text-sm text-gray-500 mt-2">{{ description }}</p>
+    <p class="text-xs text-gray-500 mt-2 whitespace-nowrap overflow-hidden">{{ description }}</p>
   </div>
 </template>
