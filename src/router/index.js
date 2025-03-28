@@ -30,6 +30,10 @@ const routes = [
     path: '/voting-result',
     name: 'VotingResult',
     component: VotingResult
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ];
 
