@@ -1,4 +1,5 @@
 <script setup>
+import ToastContainer from './components/common/ToastContainer.vue'
 </script>
 
 <template>
@@ -6,5 +7,6 @@
     <main>
       <router-view />
     </main>
+    <ToastContainer />
   </div>
 </template>
