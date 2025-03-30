@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { TOAST_TYPES } from '../../stores/toast.js'
+import { TOAST_TYPES } from '@/stores/toast.js'
 
 const props = defineProps({
   id: {

@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue';
-import OptionGroup from '../components/voting/OptionGroup.vue';
-import BudgetSlider from '../components/voting/BudgetSlider.vue';
-import CommentInput from '../components/voting/CommentInput.vue';
+import OptionGroup from '@/components/voting/OptionGroup.vue';
+import BudgetSlider from '@/components/voting/BudgetSlider.vue';
+import CommentInput from '@/components/voting/CommentInput.vue';
 
 const selectedFood = ref(null);
 const selectedFlavor = ref(null);
@@ -61,13 +61,7 @@ const flavorOptions = [{
         <OptionGroup v-model="selectedFlavor" :options="flavorOptions" title="2. 你偏好哪種口味 ?" />
       </div>
       <div class="mt-8">
-        <BudgetSlider 
-          v-model="budget" 
-          title="3. 你的預算是 ?" 
-          :min="100" 
-          :max="1000" 
-          :step="10" 
-        />
+        <BudgetSlider v-model="budget" title="3. 你的預算是 ?" :min="100" :max="1000" :step="10" />
       </div>
       <div class="mt-8">
         <CommentInput v-model="comment" />

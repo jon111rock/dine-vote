@@ -1,5 +1,5 @@
 <script setup>
-import { useToastStore } from '../../stores/toast'
+import { useToastStore } from '@/stores/toast'
 import Toast from './Toast.vue'
 import { Transition, TransitionGroup } from 'vue'
 

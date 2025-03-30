@@ -1,4 +1,4 @@
-import { useToastStore, TOAST_TYPES } from '../stores/toast'
+import { useToastStore, TOAST_TYPES } from '@/stores/toast'
 
 /**
  * 全局 Toast 通知系統的訪問點

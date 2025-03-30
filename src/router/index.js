@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../views/Home.vue';
-import CreateRoom from '../views/CreateRoom.vue';
-import WaitingRoom from '../views/WaitingRoom.vue';
-import VotingForm from '../views/VotingForm.vue';
-import VotingResult from '../views/VotingResult.vue';
-import ToastContainer from '../components/common/ToastContainer.vue';
+import Home from '@/views/Home.vue';
+import CreateRoom from '@/views/CreateRoom.vue';
+import WaitingRoom from '@/views/WaitingRoom.vue';
+import VotingForm from '@/views/VotingForm.vue';
+import VotingResult from '@/views/VotingResult.vue';
+import ToastContainer from '@/components/common/ToastContainer.vue';
 
 const routes = [
   {

@@ -1,5 +1,5 @@
 <script setup>
-import NavigationBack from '../components/common/NavigationBack.vue';
+import NavigationBack from '@/components/common/NavigationBack.vue';
 </script>
 
 <template>

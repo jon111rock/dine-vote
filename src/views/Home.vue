@@ -1,5 +1,5 @@
 <script setup>
-import { useToast } from '../composables/useToast'
+import { useToast } from '@/composables/useToast'
 
 // 初始化 toast
 const toast = useToast()
