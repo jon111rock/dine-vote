@@ -14,22 +14,47 @@ const handleNicknameSaved = (nickname) => {
 </script>
 
 <template>
-  <div class="flex justify-center items-center h-screen flex-col">
-    <div class="max-w-md w-full">
-      <div class="flex flex-col items-center">
-        <h1 class="text-4xl mb-2 text-logo-gradient font-medium">DineVote</h1>
-        <p class="text-gray-600">一起決定今天吃什麼！</p>
+  <div class="flex justify-center items-center min-h-screen py-8 px-4 sm:py-12">
+    <div class="w-full max-w-md">
+      <!-- Logo 和標語 -->
+      <div class="flex flex-col items-center mb-6 sm:mb-8">
+        <h1 class="text-3xl sm:text-4xl mb-2 text-logo-gradient font-medium">DineVote</h1>
+        <p class="text-gray-600 text-sm sm:text-base">一起決定今天吃什麼！</p>
       </div>
-      <div class="bg-white p-8 rounded-xl shadow-lg mt-6">
-        <p class="text-xl font-medium text-gray-700">{{ nicknameStorage.hasNickname() ? '歡迎回來！' : '設置您的暱稱' }}</p>
-        <div class="mt-4">
+
+      <!-- 主卡片 -->
+      <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-6">
+        <p class="text-xl font-medium text-gray-700 mb-4">{{ nicknameStorage.hasNickname() ? '歡迎回來！' : '設置您的暱稱' }}</p>
+        <div>
           <NicknameEditor @nickname-saved="handleNicknameSaved" />
         </div>
       </div>
-      <div class="w-full mt-8 flex gap-4">
-        <button class="w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium">創建房間</button>
-        <button class="w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium">加入房間</button>
+
+      <!-- 底部按鈕 -->
+      <div class="w-full flex gap-3 sm:gap-4">
+        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow">創建房間</button>
+        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow">加入房間</button>
+      </div>
+
+      <!-- 版本資訊 -->
+      <div class="mt-6 text-center">
+        <p class="text-xs text-gray-500">版本 1.0.0</p>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.text-logo-gradient {
+  background: linear-gradient(to right, #5E5CE6, #00B8D9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (max-width: 640px) {
+  .min-h-screen {
+    height: -webkit-fill-available;
+  }
+}
+</style>
