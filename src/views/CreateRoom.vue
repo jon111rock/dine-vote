@@ -3,7 +3,7 @@ import NavigationBack from '@/components/common/NavigationBack.vue';
 </script>
 
 <template>
-  <div class="flex items-center h-screen flex-col">
+  <div class="flex items-center min-h-screen flex-col w-full py-8 px-4">
     <div class="w-full max-w-md">
       <NavigationBack backPath="/" />
       <div class="w-full bg-white rounded-lg p-8 shadow-lg">

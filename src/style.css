@@ -11,6 +11,16 @@ body {
   );
   min-height: 100vh;
   background-attachment: fixed;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.router-view-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 @layer utilities {

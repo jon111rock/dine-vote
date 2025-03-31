@@ -18,7 +18,7 @@ const navigateToCreateRoom = () => {
 </script>
 
 <template>
-  <div class="flex justify-center items-center min-h-screen py-8 px-4 sm:py-12">
+  <div class="flex justify-center items-center min-h-screen py-8 px-4 sm:py-12 w-full">
     <div class="w-full max-w-md">
       <!-- Logo 和標語 -->
       <div class="flex flex-col items-center mb-6 sm:mb-8">
