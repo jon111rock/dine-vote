@@ -1,12 +1,19 @@
 <script setup>
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import NicknameEditor from '@/components/profile/NicknameEditor.vue'
+import { useRouter } from 'vue-router'
 
 const nicknameStorage = useNicknameStorage()
+const router = useRouter()
 
 // 處理暱稱儲存成功事件
 const handleNicknameSaved = (nickname) => {
   console.log('暱稱已儲存:', nickname)
+}
+
+// 導航到創建房間頁面
+const navigateToCreateRoom = () => {
+  router.push('/create-room')
 }
 </script>
 
@@ -29,7 +36,7 @@ const handleNicknameSaved = (nickname) => {
 
       <!-- 底部按鈕 -->
       <div class="w-full flex gap-3 sm:gap-4">
-        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow">創建房間</button>
+        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToCreateRoom">創建房間</button>
         <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow">加入房間</button>
       </div>
 
@@ -40,18 +47,3 @@ const handleNicknameSaved = (nickname) => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.text-logo-gradient {
-  background: linear-gradient(to right, #5E5CE6, #00B8D9);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-@media (max-width: 640px) {
-  .min-h-screen {
-    height: -webkit-fill-available;
-  }
-}
-</style>
