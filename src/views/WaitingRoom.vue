@@ -67,8 +67,7 @@ const handleLeaveRoom = async () => {
   try {
     isLoading.value = true
     await leaveRoom(roomId.value, nicknameStorage.nickname.value)
-    toast.success('已離開房間')
-    router.push('/')
+    isOwner.value ? router.push('/') : toast.success('已離開房間')
   } catch (err) {
     console.error('離開房間失敗:', err)
     toast.error('離開房間失敗')
