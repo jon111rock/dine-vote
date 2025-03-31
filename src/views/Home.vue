@@ -1,10 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
-import { useToast } from '@/composables/useToast'
 import NicknameEditor from '@/components/profile/NicknameEditor.vue'
 
-const toast = useToast()
 const nicknameStorage = useNicknameStorage()
 
 // 處理暱稱儲存成功事件
