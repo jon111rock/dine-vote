@@ -15,6 +15,11 @@ const handleNicknameSaved = (nickname) => {
 const navigateToCreateRoom = () => {
   router.push('/create-room')
 }
+
+// 導航到加入房間頁面
+const navigateToJoinRoom = () => {
+  router.push('/join-room')
+}
 </script>
 
 <template>
@@ -37,7 +42,7 @@ const navigateToCreateRoom = () => {
       <!-- 底部按鈕 -->
       <div class="w-full flex gap-3 sm:gap-4">
         <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToCreateRoom">創建房間</button>
-        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow">加入房間</button>
+        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToJoinRoom">加入房間</button>
       </div>
 
       <!-- 版本資訊 -->
