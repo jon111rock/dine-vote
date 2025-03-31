@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
-import { leaveRoom } from '@/firebase/rooms'
+import { leaveRoom, getRoomById, watchRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 
@@ -12,32 +12,81 @@ const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 
 const roomId = ref('')
+const roomCode = ref('')
 const isLoading = ref(false)
+const isOwner = ref(false)
+const unsubscribe = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
   const urlRoomId = route.query.roomId
   if (urlRoomId) {
     roomId.value = urlRoomId
+    try {
+      const room = await getRoomById(urlRoomId)
+      if (room) {
+        roomCode.value = room.roomCode
+        isOwner.value = room.ownerId === nicknameStorage.nickname.value
+
+        // 監聽房間狀態
+        unsubscribe.value = watchRoom(urlRoomId, (room) => {
+          if (!room) {
+            // 房間被刪除
+            toast.error('房主已離開房間')
+            // 延遲跳轉，讓使用者看到提示訊息
+            setTimeout(() => {
+              router.push('/')
+            }, 1500)
+            return
+          }
+
+          // 更新房間資訊
+          roomCode.value = room.roomCode
+          isOwner.value = room.ownerId === nicknameStorage.nickname.value
+        })
+      }
+    } catch (err) {
+      console.error('獲取房間資訊失敗:', err)
+      toast.error('獲取房間資訊失敗')
+      router.push('/')
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (unsubscribe.value) {
+    unsubscribe.value()
   }
 })
 
 const handleLeaveRoom = async () => {
-  if (!roomId.value || !nicknameStorage.hasNickname()) {
-    router.push('/')
+  if (!roomId.value || !nicknameStorage.nickname.value) {
+    toast.error('系統錯誤')
     return
   }
 
   try {
     isLoading.value = true
-    const userId = nicknameStorage.nickname.value
-    await leaveRoom(roomId.value, userId)
+    await leaveRoom(roomId.value, nicknameStorage.nickname.value)
     toast.success('已離開房間')
     router.push('/')
   } catch (err) {
     console.error('離開房間失敗:', err)
-    toast.error(err.message || '離開房間失敗')
+    toast.error('離開房間失敗')
   } finally {
     isLoading.value = false
+  }
+}
+
+// 複製房間代碼
+const copyRoomCode = async () => {
+  if (!roomCode.value) return
+
+  try {
+    await navigator.clipboard.writeText(roomCode.value)
+    toast.success('複製成功')
+  } catch (err) {
+    console.error('複製失敗:', err)
+    toast.error('複製失敗')
   }
 }
 </script>
@@ -49,7 +98,12 @@ const handleLeaveRoom = async () => {
       <div class="w-full bg-white rounded-lg p-8 shadow-lg">
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold">等待其他玩家加入</h1>
-          <span class="text-xs text-indigo-800 cursor-pointer bg-indigo-100 px-2 py-1 rounded-lg">房間代碼：{{ roomId }}</span>
+          <div class="flex items-center gap-2">
+            <span v-if="isOwner" class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-lg">房主</span>
+            <span @click="copyRoomCode" class="text-xs text-indigo-800 cursor-pointer bg-indigo-100 px-2 py-1 rounded-lg hover:bg-indigo-200 transition-colors">
+              房間代碼：{{ roomCode }}
+            </span>
+          </div>
         </div>
         <div class="mt-4">
           <span class="text-sm text-gray-800">已加入成員(2/3)</span>

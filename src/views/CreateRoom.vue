@@ -1,12 +1,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import NavigationBack from '@/components/common/NavigationBack.vue'
+import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { createRoom } from '@/firebase/rooms'
+import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 
-const toast = useToast()
 const router = useRouter()
+const nicknameStorage = useNicknameStorage()
+const toast = useToast()
+
 const roomName = ref('')
 const location = ref('')
 const expiryTime = ref('30')
@@ -14,6 +17,11 @@ const isAnonymous = ref(false)
 const isLoading = ref(false)
 
 const handleCreateRoom = async () => {
+  if (!nicknameStorage.hasNickname()) {
+    toast.error('請先設定暱稱')
+    return
+  }
+
   if (!roomName.value.trim()) {
     toast.error('請輸入房間名稱')
     return
@@ -21,21 +29,21 @@ const handleCreateRoom = async () => {
 
   try {
     isLoading.value = true
+    const userId = nicknameStorage.nickname.value
+
     const roomData = {
-      name: roomName.value,
-      location: location.value,
+      name: roomName.value.trim(),
+      location: location.value.trim(),
       expiryTime: parseInt(expiryTime.value),
       isAnonymous: isAnonymous.value,
-      createdBy: 'test-user' // 暫時使用測試用戶ID
+      userId
     }
 
-    const newRoom = await createRoom(roomData)
-    console.log('房間創建成功:', newRoom)
-    toast.success('房間創建成功')
-    router.push(`/waiting-room?roomId=${newRoom.id}`)
-  } catch (error) {
-    console.error('創建房間失敗:', error)
-    toast.error('創建房間失敗，請稍後再試')
+    const room = await createRoom(roomData)
+    router.push(`/waiting-room?roomId=${room.id}`)
+  } catch (err) {
+    console.error('創建房間失敗:', err)
+    toast.error('創建房間失敗')
   } finally {
     isLoading.value = false
   }
