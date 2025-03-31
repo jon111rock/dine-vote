@@ -11,7 +11,8 @@ import {
   doc,
   getDoc,
   updateDoc,
-  arrayUnion
+  arrayUnion,
+  deleteField
 } from 'firebase/firestore'
 
 // 創建新房間
@@ -100,6 +101,33 @@ export const joinRoom = async (roomId, userId) => {
     return true
   } catch (error) {
     console.error('加入房間失敗:', error)
+    throw error
+  }
+}
+
+// 離開房間
+export const leaveRoom = async (roomId, userId) => {
+  try {
+    const roomRef = doc(db, 'rooms', roomId)
+    const roomDoc = await getDoc(roomRef)
+    
+    if (!roomDoc.exists()) {
+      throw new Error('找不到此房間')
+    }
+    
+    const roomData = roomDoc.data()
+    if (roomData.status !== 'active') {
+      throw new Error('此房間已結束')
+    }
+    
+    // 從參與者列表中移除用戶
+    await updateDoc(roomRef, {
+      [`participants.${userId}`]: deleteField()
+    })
+    
+    return true
+  } catch (error) {
+    console.error('離開房間失敗:', error)
     throw error
   }
 } 
