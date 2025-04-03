@@ -66,6 +66,7 @@ const handleJoinRoom = async () => {
     // 加入房間
     const userId = nicknameStorage.nickname.value
     await joinRoom(room.id, userId)
+    toast.success('加入房間成功')
 
     // 跳轉到等待房間
     router.push(`/waiting-room?roomId=${room.id}`)

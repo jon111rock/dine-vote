@@ -31,7 +31,7 @@ onMounted(async () => {
         unsubscribe.value = watchRoom(urlRoomId, (room) => {
           if (!room) {
             // 房間被刪除
-            toast.error('房主已離開房間')
+            toast.success('房主已離開房間')
             // 延遲跳轉，讓使用者看到提示訊息
             setTimeout(() => {
               router.push('/')
@@ -67,7 +67,8 @@ const handleLeaveRoom = async () => {
   try {
     isLoading.value = true
     await leaveRoom(roomId.value, nicknameStorage.nickname.value)
-    isOwner.value ? router.push('/') : toast.success('已離開房間')
+    toast.success('已離開房間')
+    router.push('/')
   } catch (err) {
     console.error('離開房間失敗:', err)
     toast.error('離開房間失敗')
