@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { leaveRoom, getRoomById, watchRoom } from '@/firebase/rooms'
@@ -16,6 +16,58 @@ const roomCode = ref('')
 const isLoading = ref(false)
 const isOwner = ref(false)
 const unsubscribe = ref(null)
+const participants = ref({})
+const maxParticipants = ref(8)
+const roomOwnerId = ref('')
+
+// 計算已加入成員數
+const participantsCount = computed(() => {
+  return Object.keys(participants.value).length
+})
+
+// 生成隨機顏色
+const backgroundColors = {
+  0: 'bg-indigo-500',
+  1: 'bg-pink-500',
+  2: 'bg-green-500',
+  3: 'bg-yellow-500',
+  4: 'bg-purple-500',
+  5: 'bg-red-500',
+  6: 'bg-blue-500',
+  7: 'bg-teal-500',
+}
+
+const colorMap = ref({})
+
+const getColorForUser = (userId) => {
+  if (!colorMap.value[userId]) {
+    const usedColors = Object.values(colorMap.value)
+    // 查找一個未使用的顏色
+    let colorIndex = 0;
+    for (let i = 0; i < 8; i++) {
+      if (!usedColors.includes(backgroundColors[i])) {
+        colorIndex = i;
+        break;
+      }
+    }
+    // 如果所有顏色都已使用，則使用循環值
+    if (usedColors.length >= 8) {
+      colorIndex = Object.keys(colorMap.value).length % 8;
+    }
+    colorMap.value[userId] = backgroundColors[colorIndex];
+  }
+  return colorMap.value[userId];
+}
+
+// 獲取顯示的首字
+const getFirstLetter = (nickname) => {
+  return nickname.charAt(0)
+}
+
+// 檢查是否為房主
+const checkIsOwner = (userId) => {
+  return roomOwnerId.value === userId
+}
 
 onMounted(async () => {
   const urlRoomId = route.query.roomId
@@ -25,7 +77,14 @@ onMounted(async () => {
       const room = await getRoomById(urlRoomId)
       if (room) {
         roomCode.value = room.roomCode
+        roomOwnerId.value = room.ownerId
         isOwner.value = room.ownerId === nicknameStorage.nickname.value
+        participants.value = room.participants || {}
+
+        // 為所有參與者分配顏色
+        Object.keys(participants.value).forEach(userId => {
+          getColorForUser(userId)
+        })
 
         // 監聽房間狀態
         unsubscribe.value = watchRoom(urlRoomId, (room) => {
@@ -41,7 +100,19 @@ onMounted(async () => {
 
           // 更新房間資訊
           roomCode.value = room.roomCode
+          roomOwnerId.value = room.ownerId
           isOwner.value = room.ownerId === nicknameStorage.nickname.value
+
+          // 更新參與者列表
+          const prevParticipants = { ...participants.value }
+          participants.value = room.participants || {}
+
+          // 為新參與者分配顏色
+          Object.keys(participants.value).forEach(userId => {
+            if (!prevParticipants[userId]) {
+              getColorForUser(userId)
+            }
+          })
         })
       }
     } catch (err) {
@@ -106,16 +177,17 @@ const copyRoomCode = async () => {
           </div>
         </div>
         <div class="mt-4">
-          <span class="text-sm text-gray-800">已加入成員(2/3)</span>
+          <span class="text-sm text-gray-800">已加入成員({{ participantsCount }}/{{ maxParticipants }})</span>
         </div>
         <div class="grid grid-cols-4 gap-3 mt-4">
-          <div class="text-center">
-            <div class="w-14 h-14 rounded-full bg-indigo-500 flex items-center justify-center text-white text-lg font-bold mx-auto mb-1 joined-animation">小</div>
-            <p class="text-sm text-gray-800">小明</p>
-          </div>
-          <div class="text-center">
-            <div class="w-14 h-14 rounded-full bg-pink-500 flex items-center justify-center text-white text-lg font-bold mx-auto mb-1 joined-animation">美</div>
-            <p class="text-sm text-gray-800">美美</p>
+          <div v-for="(participant, userId) in participants" :key="userId" class="text-center member-item">
+            <div :class="[getColorForUser(userId), 'w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-1 joined-animation']">
+              {{ getFirstLetter(userId) }}
+            </div>
+            <div class="flex flex-col items-center">
+              <p class="text-sm text-gray-800">{{ userId }}</p>
+              <span v-if="checkIsOwner(userId)" class="text-xs text-green-600">房主</span>
+            </div>
           </div>
         </div>
         <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-8">開始投票</button>
@@ -123,3 +195,29 @@ const copyRoomCode = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.joined-animation {
+  animation: joined 0.5s ease-in-out;
+}
+
+@keyframes joined {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.member-item {
+  transition: all 0.3s ease;
+}
+</style>
