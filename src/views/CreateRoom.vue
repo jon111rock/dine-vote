@@ -1,20 +1,63 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { createRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
+import useGoogleMapsAutocomplete from '@/composables/maps/useGoogleMapsAutocomplete'
+import { useCurrentLocation } from '@/composables/maps/useCurrentLocation'
 
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 
 const roomName = ref('')
-const location = ref('')
+const locationInput = ref(null)
 const expiryTime = ref('30')
 const isAnonymous = ref(false)
 const isLoading = ref(false)
+
+// 地址自動完成
+const {
+  isError: isLocationError,
+  errorMessage: locationErrorMessage,
+  selectedPlace,
+  selectedGeoPoint,
+  reset: resetLocation
+} = useGoogleMapsAutocomplete(locationInput)
+
+// 使用當前位置
+const {
+  isLoading: isLocationLoading,
+  addressInfo,
+  position,
+  getCurrentPosition
+} = useCurrentLocation()
+
+// 取得當前位置並填入地址欄位
+const handleGetCurrentLocation = async () => {
+  // 如果已經在加載中，則不執行
+  if (isLocationLoading.value || isLoading.value) return;
+
+  isLoading.value = true;
+  const success = await getCurrentPosition();
+
+  if (success && addressInfo.value) {
+    // 填入地址欄位
+    if (locationInput.value) {
+      locationInput.value.value = addressInfo.value.formattedAddress;
+    }
+
+    // 更新地點資訊到自動完成組件的狀態
+    selectedGeoPoint.value = position.value;
+    selectedPlace.value = addressInfo.value;
+  } else {
+    toast.error('無法取得您的位置');
+  }
+
+  isLoading.value = false;
+}
 
 const handleCreateRoom = async () => {
   if (!nicknameStorage.hasNickname()) {
@@ -33,11 +76,25 @@ const handleCreateRoom = async () => {
 
     const roomData = {
       name: roomName.value.trim(),
-      location: location.value.trim(),
-      expiryTime: parseInt(expiryTime.value),
-      isAnonymous: isAnonymous.value,
       userId
     }
+
+    // 加入地點資訊（如果有選擇地點）
+    if (selectedPlace.value) {
+      roomData.location = {
+        address: selectedPlace.value.formattedAddress,
+        name: selectedPlace.value.name,
+        geopoint: selectedGeoPoint.value
+      }
+    } else if (locationInput.value && locationInput.value.value.trim()) {
+      // 只有純文字地址，無經緯度
+      roomData.location = {
+        address: locationInput.value.value.trim()
+      }
+    }
+
+    roomData.expiryTime = parseInt(expiryTime.value)
+    roomData.isAnonymous = isAnonymous.value
 
     const room = await createRoom(roomData)
     router.push(`/waiting-room?roomId=${room.id}`)
@@ -65,20 +122,26 @@ const handleCreateRoom = async () => {
         <div class="mt-6">
           <label for="location" class="text-sm">地點</label>
           <div class="relative mt-2">
-            <input v-model="location" type="text" id="location" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg" placeholder="輸入地點或使用我的當前位置">
+            <input ref="locationInput" type="text" id="location" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg" placeholder="輸入地點或使用我的當前位置">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
               </svg>
             </div>
           </div>
-          <div class="flex items-center mt-2 gap-1 text-blue-600 text-sm cursor-pointer">
+          <div v-if="isLocationError" class="mt-1 text-red-500 text-xs">
+            {{ locationErrorMessage }}
+          </div>
+          <div v-if="selectedPlace" class="mt-1 text-green-600 text-xs">
+            已選擇: {{ selectedPlace.formattedAddress }}
+          </div>
+          <div class="flex items-center mt-2 gap-1 text-blue-600 text-sm cursor-pointer" @click="handleGetCurrentLocation" :class="{ 'opacity-50 pointer-events-none': isLoading || isLocationLoading }">
             <span>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
               </svg>
             </span>
-            <span>使用我的當前位置</span>
+            <span>{{ isLoading || isLocationLoading ? '取得位置中...' : '使用我的當前位置' }}</span>
           </div>
         </div>
         <div class="mt-6">
