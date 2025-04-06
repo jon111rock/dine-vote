@@ -6,6 +6,7 @@ import { createRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 import useGoogleMapsAutocomplete from '@/composables/maps/useGoogleMapsAutocomplete'
+import { useCurrentLocation } from '@/composables/maps/useCurrentLocation'
 
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
@@ -26,73 +27,36 @@ const {
   reset: resetLocation
 } = useGoogleMapsAutocomplete(locationInput)
 
-// 取得當前位置
-const getCurrentLocation = () => {
-  if (!navigator.geolocation) {
-    toast.error('您的瀏覽器不支援地理定位功能')
-    return
+// 使用當前位置
+const {
+  isLoading: isLocationLoading,
+  addressInfo,
+  position,
+  getCurrentPosition
+} = useCurrentLocation()
+
+// 取得當前位置並填入地址欄位
+const handleGetCurrentLocation = async () => {
+  // 如果已經在加載中，則不執行
+  if (isLocationLoading.value || isLoading.value) return;
+
+  isLoading.value = true;
+  const success = await getCurrentPosition();
+
+  if (success && addressInfo.value) {
+    // 填入地址欄位
+    if (locationInput.value) {
+      locationInput.value.value = addressInfo.value.formattedAddress;
+    }
+
+    // 更新地點資訊到自動完成組件的狀態
+    selectedGeoPoint.value = position.value;
+    selectedPlace.value = addressInfo.value;
+  } else {
+    toast.error('無法取得您的位置');
   }
 
-  isLoading.value = true
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      try {
-        // 取得經緯度
-        const lat = position.coords.latitude
-        const lng = position.coords.longitude
-
-        // 用經緯度反查地址 (反向地理編碼)
-        const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
-        )
-        const data = await response.json()
-
-        if (data.status === 'OK' && data.results.length > 0) {
-          // 設定地址
-          if (locationInput.value) {
-            locationInput.value.value = data.results[0].formatted_address
-          }
-
-          // 儲存經緯度資訊
-          selectedGeoPoint.value = {
-            latitude: lat,
-            longitude: lng
-          }
-
-          // 儲存地址詳細資訊
-          selectedPlace.value = {
-            placeId: data.results[0].place_id,
-            formattedAddress: data.results[0].formatted_address,
-            name: data.results[0].formatted_address,
-            addressComponents: data.results[0].address_components
-          }
-        } else {
-          toast.error('無法取得您的位置地址')
-        }
-      } catch (error) {
-        console.error('獲取當前位置失敗:', error)
-        toast.error('獲取當前位置失敗')
-      } finally {
-        isLoading.value = false
-      }
-    },
-    (error) => {
-      console.error('地理定位錯誤:', error)
-      isLoading.value = false
-
-      let errorMsg = '無法取得您的位置'
-      if (error.code === 1) {
-        errorMsg = '您已拒絕位置存取權限'
-      } else if (error.code === 2) {
-        errorMsg = '無法獲取位置信息，請檢查您的網絡連接'
-      } else if (error.code === 3) {
-        errorMsg = '位置請求超時，請稍後再試'
-      }
-
-      toast.error(errorMsg)
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  )
+  isLoading.value = false;
 }
 
 const handleCreateRoom = async () => {
@@ -171,13 +135,13 @@ const handleCreateRoom = async () => {
           <div v-if="selectedPlace" class="mt-1 text-green-600 text-xs">
             已選擇: {{ selectedPlace.formattedAddress }}
           </div>
-          <div class="flex items-center mt-2 gap-1 text-blue-600 text-sm cursor-pointer" @click="getCurrentLocation" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+          <div class="flex items-center mt-2 gap-1 text-blue-600 text-sm cursor-pointer" @click="handleGetCurrentLocation" :class="{ 'opacity-50 pointer-events-none': isLoading || isLocationLoading }">
             <span>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
               </svg>
             </span>
-            <span>{{ isLoading ? '取得位置中...' : '使用我的當前位置' }}</span>
+            <span>{{ isLoading || isLocationLoading ? '取得位置中...' : '使用我的當前位置' }}</span>
           </div>
         </div>
         <div class="mt-6">
