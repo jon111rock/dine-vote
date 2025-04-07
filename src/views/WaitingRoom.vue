@@ -19,6 +19,7 @@ const unsubscribe = ref(null)
 const participants = ref({})
 const maxParticipants = ref(8)
 const roomOwnerId = ref('')
+const currentUserId = ref('')
 
 // 計算已加入成員數
 const participantsCount = computed(() => {
@@ -61,29 +62,31 @@ const getColorForUser = (userId) => {
 
 // 獲取顯示的首字
 const getFirstLetter = (nickname) => {
-  return nickname.charAt(0)
+  return nickname ? nickname.charAt(0).toUpperCase() : '?'
 }
 
 // 檢查是否為房主
-const checkIsOwner = (userId) => {
-  return roomOwnerId.value === userId
+const checkIsOwner = (participantData) => {
+  return participantData.isOwner
 }
 
 onMounted(async () => {
   const urlRoomId = route.query.roomId
   if (urlRoomId) {
     roomId.value = urlRoomId
+    currentUserId.value = nicknameStorage.nickname.value
+
     try {
       const room = await getRoomById(urlRoomId)
       if (room) {
         roomCode.value = room.roomCode
         roomOwnerId.value = room.ownerId
-        isOwner.value = room.ownerId === nicknameStorage.nickname.value
+        isOwner.value = room.ownerId === currentUserId.value
         participants.value = room.participants || {}
 
         // 為所有參與者分配顏色
-        Object.keys(participants.value).forEach(userId => {
-          getColorForUser(userId)
+        Object.keys(participants.value).forEach(participantId => {
+          getColorForUser(participantId)
         })
 
         // 監聽房間狀態
@@ -101,16 +104,16 @@ onMounted(async () => {
           // 更新房間資訊
           roomCode.value = room.roomCode
           roomOwnerId.value = room.ownerId
-          isOwner.value = room.ownerId === nicknameStorage.nickname.value
+          isOwner.value = room.ownerId === currentUserId.value
 
           // 更新參與者列表
           const prevParticipants = { ...participants.value }
           participants.value = room.participants || {}
 
           // 為新參與者分配顏色
-          Object.keys(participants.value).forEach(userId => {
-            if (!prevParticipants[userId]) {
-              getColorForUser(userId)
+          Object.keys(participants.value).forEach(participantId => {
+            if (!prevParticipants[participantId]) {
+              getColorForUser(participantId)
             }
           })
         })
@@ -130,14 +133,14 @@ onUnmounted(() => {
 })
 
 const handleLeaveRoom = async () => {
-  if (!roomId.value || !nicknameStorage.nickname.value) {
+  if (!roomId.value || !currentUserId.value) {
     toast.error('系統錯誤')
     return
   }
 
   try {
     isLoading.value = true
-    await leaveRoom(roomId.value, nicknameStorage.nickname.value)
+    await leaveRoom(roomId.value, currentUserId.value)
     toast.success('已離開房間')
     router.push('/')
   } catch (err) {
@@ -185,13 +188,13 @@ const copyRoomCode = async () => {
           <span class="text-sm text-gray-800">已加入成員({{ participantsCount }}/{{ maxParticipants }})</span>
         </div>
         <div class="grid grid-cols-4 gap-3 mt-4">
-          <div v-for="(participant, userId) in participants" :key="userId" class="text-center member-item">
-            <div :class="[getColorForUser(userId), 'w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-1 joined-animation']">
-              {{ getFirstLetter(userId) }}
+          <div v-for="(participant, participantId) in participants" :key="participantId" class="text-center member-item">
+            <div :class="[getColorForUser(participantId), 'w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-1 joined-animation']">
+              {{ getFirstLetter(participant.userId) }}
             </div>
             <div class="flex flex-col items-center">
-              <p class="text-sm text-gray-800">{{ userId }}</p>
-              <span v-if="checkIsOwner(userId)" class="text-xs text-green-600">房主</span>
+              <p class="text-sm text-gray-800">{{ participant.userId }}</p>
+              <span v-if="checkIsOwner(participant)" class="text-xs text-green-600">房主</span>
             </div>
           </div>
         </div>
