@@ -148,6 +148,11 @@ const handleLeaveRoom = async () => {
   }
 }
 
+const startVoting = () => {
+  console.log('開始投票')
+  router.push('/voting-form')
+}
+
 // 複製房間代碼
 const copyRoomCode = async () => {
   if (!roomCode.value) return
@@ -190,7 +195,7 @@ const copyRoomCode = async () => {
             </div>
           </div>
         </div>
-        <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-8">開始投票</button>
+        <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-8 cursor-pointer" @click="startVoting">開始投票</button>
       </div>
     </div>
   </div>
