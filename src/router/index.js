@@ -5,6 +5,7 @@ import WaitingRoom from '@/views/WaitingRoom.vue';
 import VotingForm from '@/views/VotingForm.vue';
 import VotingResult from '@/views/VotingResult.vue';
 import ToastContainer from '@/components/common/ToastContainer.vue';
+import JoinRoom from '@/views/JoinRoom.vue';
 
 const routes = [
   {
@@ -32,11 +33,10 @@ const routes = [
     name: 'VotingResult',
     component: VotingResult
   },
-  // 測試用
   {
-    path: '/toast-container',
-    name: 'ToastContainer',
-    component: ToastContainer
+    path: '/join-room',
+    name: 'JoinRoom',
+    component: JoinRoom
   },
   {
     path: '/:pathMatch(.*)*',
@@ -45,7 +45,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
 
