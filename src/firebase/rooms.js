@@ -68,7 +68,8 @@ export const createRoom = async (roomData) => {
         [participantId]: {
           userId: roomData.userId,
           joinedAt: serverTimestamp(),
-          isOwner: true
+          isOwner: true,
+          voteStatus: 'pending'
         }
       },
       ownerId: roomData.userId
@@ -169,7 +170,8 @@ export const joinRoom = async (roomId, userId) => {
       [`participants.${participantId}`]: {
         userId,
         joinedAt: serverTimestamp(),
-        isOwner: false
+        isOwner: false,
+        voteStatus: 'pending'
       }
     })
     
