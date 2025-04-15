@@ -14,6 +14,10 @@ const props = defineProps({
   title: {
     type: String,
     default: ''
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -22,6 +26,8 @@ const emit = defineEmits(['update:modelValue', 'change']);
 const selectedValue = ref(props.modelValue);
 
 const handleSelect = (value) => {
+  if (props.disabled) return;
+
   selectedValue.value = value;
   emit('update:modelValue', value);
   emit('change', value);
@@ -31,6 +37,6 @@ const handleSelect = (value) => {
 <template>
   <p class="text-sm">{{ title }}</p>
   <div class="grid grid-cols-2 mt-4 gap-3">
-    <OptionCard v-for="option in options" :key="option.label" :title="option.label" :description="option.description" :value="option.value" :isSelected="selectedValue === option.value" @select="handleSelect(option.value)" />
+    <OptionCard v-for="option in options" :key="option.label" :title="option.label" :description="option.description" :value="option.value" :isSelected="selectedValue === option.value" :disabled="disabled" @select="handleSelect(option.value)" />
   </div>
 </template>
