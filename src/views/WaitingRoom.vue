@@ -153,8 +153,30 @@ const handleLeaveRoom = async () => {
 
 const startVoting = () => {
   console.log('開始投票')
-  router.push('/voting-form')
-}
+  // 保存到localStorage以便在頁面刷新時恢復
+  localStorage.setItem('currentRoomId', roomId.value);
+
+  // 找到當前用戶的 participantId
+  let currentParticipantId = null;
+
+  // 查找當前用戶在參與者列表中的 ID
+  for (const [pid, participant] of Object.entries(participants.value)) {
+    if (participant.userId === currentUserId.value) {
+      currentParticipantId = pid;
+      break;
+    }
+  }
+
+  if (!currentParticipantId) {
+    toast.error('無法找到您的參與者資訊');
+    return;
+  }
+
+  localStorage.setItem('currentParticipantId', currentParticipantId);
+
+  // 跳轉到投票頁面，帶上參數
+  router.push(`/voting-form?roomId=${roomId.value}&participantId=${currentParticipantId}`);
+};
 
 // 複製房間代碼
 const copyRoomCode = async () => {

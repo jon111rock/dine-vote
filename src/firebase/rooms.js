@@ -242,4 +242,133 @@ export const watchRoom = (roomId, onUpdate) => {
   }, (error) => {
     console.error('監聽房間失敗:', error)
   })
+}
+
+// 提交投票
+export const submitVote = async (roomId, participantId, voteData) => {
+  try {
+    const roomRef = doc(db, 'rooms', roomId)
+    const roomDoc = await getDoc(roomRef)
+    
+    if (!roomDoc.exists()) {
+      throw new Error('房間不存在')
+    }
+    
+    const roomData = roomDoc.data()
+    if (roomData.status !== 'active') {
+      throw new Error('房間已結束，無法投票')
+    }
+    
+    // 檢查參與者是否存在
+    if (!roomData.participants || !roomData.participants[participantId]) {
+      throw new Error('參與者不存在於此房間')
+    }
+    
+    // 更新參與者的投票資料
+    await updateDoc(roomRef, {
+      [`participants.${participantId}.voteData`]: voteData,
+      [`participants.${participantId}.votedAt`]: serverTimestamp(),
+      [`participants.${participantId}.voteStatus`]: 'completed'
+    })
+    
+    return true
+  } catch (error) {
+    console.error('提交投票失敗:', error)
+    throw error
+  }
+}
+
+// 獲取房間所有投票資料
+export const getRoomVotes = async (roomId) => {
+  try {
+    const roomRef = doc(db, 'rooms', roomId)
+    const roomDoc = await getDoc(roomRef)
+    
+    if (!roomDoc.exists()) {
+      throw new Error('房間不存在')
+    }
+    
+    const roomData = roomDoc.data()
+    if (!roomData.participants) {
+      return []
+    }
+    
+    // 整理投票資料
+    const votes = Object.entries(roomData.participants).map(([pid, participant]) => {
+      return {
+        participantId: pid,
+        userId: participant.userId,
+        voteData: participant.voteData || null,
+        votedAt: participant.votedAt || null,
+        voteStatus: participant.voteStatus || 'pending',
+        isOwner: participant.isOwner || false
+      }
+    })
+    
+    return votes
+  } catch (error) {
+    console.error('獲取投票資料失敗:', error)
+    throw error
+  }
+}
+
+// 檢查房間投票狀態
+export const checkRoomVoteStatus = async (roomId) => {
+  try {
+    const votes = await getRoomVotes(roomId)
+    
+    const totalParticipants = votes.length
+    const votedParticipants = votes.filter(v => v.voteStatus === 'completed').length
+    
+    return {
+      totalParticipants,
+      votedParticipants,
+      allVoted: totalParticipants > 0 && totalParticipants === votedParticipants,
+      progress: totalParticipants > 0 ? (votedParticipants / totalParticipants) * 100 : 0
+    }
+  } catch (error) {
+    console.error('檢查投票狀態失敗:', error)
+    throw error
+  }
+}
+
+// 實時監聽房間投票狀態
+export const watchRoomVotes = (roomId, onUpdate) => {
+  const roomRef = doc(db, 'rooms', roomId)
+  
+  return onSnapshot(roomRef, (doc) => {
+    if (!doc.exists()) {
+      onUpdate({ error: '房間不存在' })
+      return
+    }
+    
+    const roomData = doc.data()
+    const participants = roomData.participants || {}
+    
+    // 整理投票資料
+    const votes = Object.entries(participants).map(([pid, participant]) => {
+      return {
+        participantId: pid,
+        userId: participant.userId,
+        voteData: participant.voteData || null,
+        votedAt: participant.votedAt || null,
+        voteStatus: participant.voteStatus || 'pending',
+        isOwner: participant.isOwner || false
+      }
+    })
+    
+    const totalParticipants = votes.length
+    const votedParticipants = votes.filter(v => v.voteStatus === 'completed').length
+    
+    onUpdate({
+      votes,
+      totalParticipants,
+      votedParticipants,
+      allVoted: totalParticipants > 0 && totalParticipants === votedParticipants,
+      progress: totalParticipants > 0 ? (votedParticipants / totalParticipants) * 100 : 0
+    })
+  }, (error) => {
+    console.error('監聽投票狀態失敗:', error)
+    onUpdate({ error: error.message })
+  })
 } 
