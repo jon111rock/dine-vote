@@ -1,10 +1,168 @@
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useToast } from '@/composables/useToast';
+import { getRoomVotes, watchRoomVotes } from '@/firebase/rooms';
+
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
+
+// 狀態
+const isLoading = ref(true);
+const error = ref(null);
+const roomId = ref('');
+const unsubscribe = ref(null);
+const votesData = ref([]);
+const allVotingData = ref(null);
+
+// 頁面初始化
+onMounted(async () => {
+  // 從URL獲取房間ID
+  const urlRoomId = route.query.roomId;
+  if (!urlRoomId) {
+    // 嘗試從localStorage獲取
+    const savedRoomId = localStorage.getItem('currentRoomId');
+    if (!savedRoomId) {
+      toast.error('無法獲取房間資訊');
+      router.push('/');
+      return;
+    }
+    roomId.value = savedRoomId;
+  } else {
+    roomId.value = urlRoomId;
+  }
+
+  // 獲取投票資料
+  try {
+    isLoading.value = true;
+    const votes = await getRoomVotes(roomId.value);
+
+    console.log('房間投票資料:', votes);
+    votesData.value = votes;
+
+    // 分析投票資料
+    analyzeVotes(votes);
+
+    // 開始監聽投票資料變化
+    unsubscribe.value = watchRoomVotes(roomId.value, (data) => {
+      console.log('實時投票資料更新:', data);
+
+      if (data.error) {
+        error.value = data.error;
+        return;
+      }
+
+      allVotingData.value = data;
+      votesData.value = data.votes;
+
+      // 重新分析投票資料
+      analyzeVotes(data.votes);
+    });
+  } catch (err) {
+    console.error('獲取投票資料失敗:', err);
+    error.value = err.message;
+    toast.error(`獲取投票資料失敗: ${err.message}`);
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+// 清理資源
+onUnmounted(() => {
+  if (unsubscribe.value) {
+    unsubscribe.value();
+  }
+});
+
+// 處理投票資料
+const analyzeVotes = (votes) => {
+  if (!votes || votes.length === 0) {
+    console.log('沒有投票資料可分析');
+    return;
+  }
+
+  // 提取投票資料
+  const voteDetails = votes
+    .filter(vote => vote.voteData) // 只處理有投票資料的記錄
+    .map(vote => vote.voteData);
+
+  console.log('投票詳細資料:', voteDetails);
+
+  // 分析食物類型偏好
+  const foodPreferences = {};
+  voteDetails.forEach(vote => {
+    if (!vote.food) return;
+    foodPreferences[vote.food] = (foodPreferences[vote.food] || 0) + 1;
+  });
+  console.log('食物類型偏好:', foodPreferences);
+
+  // 分析口味偏好
+  const flavorPreferences = {};
+  voteDetails.forEach(vote => {
+    if (!vote.flavor) return;
+    flavorPreferences[vote.flavor] = (flavorPreferences[vote.flavor] || 0) + 1;
+  });
+  console.log('口味偏好:', flavorPreferences);
+
+  // 計算平均預算
+  const totalBudget = voteDetails.reduce((sum, vote) => sum + (vote.budget || 0), 0);
+  const averageBudget = voteDetails.length > 0 ? Math.round(totalBudget / voteDetails.length) : 0;
+  console.log('平均預算:', averageBudget);
+
+  // 收集所有建議
+  const comments = voteDetails
+    .filter(vote => vote.comment && vote.comment.trim() !== '')
+    .map(vote => vote.comment);
+  console.log('建議與評論:', comments);
+};
+
+// 返回首頁
+const goToHome = () => {
+  router.push('/');
+};
+
+// 重新投票
+const restartVoting = () => {
+  router.push(`/waiting-room?roomId=${roomId.value}`);
+};
+
+// 複製分享連結
+const copyShareLink = () => {
+  const link = `${window.location.origin}/voting-result?roomId=${roomId.value}`;
+  navigator.clipboard.writeText(link)
+    .then(() => {
+      toast.success('已複製分享連結');
+    })
+    .catch(err => {
+      console.error('複製失敗:', err);
+      toast.error('複製失敗');
+    });
+};
+</script>
 <template>
   <div class="flex flex-col items-center">
-    <div class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4">
+    <div v-if="isLoading" class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4 flex items-center justify-center">
+      <p>正在加載結果...</p>
+    </div>
+
+    <div v-else-if="error" class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4">
+      <p class="text-red-500">加載失敗: {{ error }}</p>
+      <button @click="goToHome" class="text-blue-500 font-bold cursor-pointer mt-4">返回首頁</button>
+    </div>
+
+    <div v-else class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4">
       <div class="flex flex-col items-center gap-2">
         <h1 class="text-xl font-bold">決定了！</h1>
         <p class="text-sm text-gray-600">根據大家的投票結果，推薦以下餐廳</p>
       </div>
+
+      <!-- 開發測試資訊 -->
+      <div class="bg-yellow-50 p-2 rounded mt-2 mb-2">
+        <p class="text-xs">投票人數: {{ votesData?.length || 0 }}</p>
+        <p class="text-xs">查看控制台瞭解詳細投票數據</p>
+      </div>
+
       <div class="mt-4 shadow-lg rounded-lg">
         <div class="h-[200px] w-full bg-gray-200 rounded-t-lg"></div>
         <div class="p-4">
@@ -39,19 +197,27 @@
             <p class="text-sm font-bold">AI推薦原因</p>
             <p class="text-sm mt-2">根據大家的投票結果，多數成員都認為這間餐廳好吃，所以推薦給你</p>
           </div>
-          <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-4 cursor-pointer">複製地圖分享連結</button>
+          <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-4 cursor-pointer" @click="copyShareLink">
+            複製分享連結
+          </button>
         </div>
       </div>
       <div class="flex flex-col items-center mt-6">
         <p class="text-sm font-bold text-gray-700">滿意這個結果嗎?</p>
         <div class="flex items-center gap-2 mt-2">
-          <button class="bg-red-gradient text-white px-4 py-2 rounded-lg cursor-pointer">滿意</button>
-          <button class="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-pointer font-medium">重新投票</button>
+          <button class="bg-red-gradient text-white px-4 py-2 rounded-lg cursor-pointer" @click="goToHome">滿意</button>
+          <button class="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-pointer font-medium" @click="restartVoting">重新投票</button>
         </div>
       </div>
     </div>
     <div class="mt-4">
-      <button class="text-blue-500 font-bold cursor-pointer">返回首頁</button>
+      <button @click="goToHome" class="text-blue-500 font-bold cursor-pointer">返回首頁</button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.bg-red-gradient {
+  background: linear-gradient(to right, #f43f5e, #ef4444);
+}
+</style>
