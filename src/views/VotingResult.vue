@@ -75,6 +75,7 @@ const fetchRecommendations = async (roomData) => {
     }
 
     const response = await axios.post(`${apiUrl}/recommendations`, {
+      roomId: roomId.value,
       votes: formattedVotes,
       options: {
         language: "zh-TW",
