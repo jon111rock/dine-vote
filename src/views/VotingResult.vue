@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { getRoomVotes } from '@/firebase/rooms';
+import { getRoomVotes, getRecommendationResults } from '@/firebase/rooms';
 import axios from 'axios';
 
 const route = useRoute();
@@ -12,8 +12,11 @@ const toast = useToast();
 // 狀態
 const isLoading = ref(true);
 const isApiLoading = ref(false);
+const isWaitingForRecommendations = ref(false);
 const error = ref(null);
 const roomId = ref('');
+const participantId = ref('');
+const isRoomOwner = ref(false);
 const votesData = ref([]);
 const recommendations = ref([]);
 const analysisStats = ref(null);
@@ -92,6 +95,7 @@ const fetchRecommendations = async (roomData) => {
       recommendations.value = response.data.data.recommendations || [];
       analysisStats.value = response.data.data.analysisStats || null;
       console.log('API回應成功:', response.data);
+
     } else {
       throw new Error(response.data?.error?.message || '獲取推薦失敗');
     }
@@ -103,6 +107,52 @@ const fetchRecommendations = async (roomData) => {
   } finally {
     isApiLoading.value = false;
   }
+};
+
+// 定時檢查是否有推薦結果
+const checkForRecommendations = async () => {
+  try {
+    console.log('檢查是否有推薦結果...');
+    const results = await getRecommendationResults(roomId.value);
+
+    if (results) {
+      console.log('已獲取推薦結果:', results);
+      recommendations.value = results.data.recommendations || [];
+      analysisStats.value = results.data.analysisStats || null;
+      isWaitingForRecommendations.value = false;
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error('檢查推薦結果失敗:', err);
+    return false;
+  }
+};
+
+// 等待房主生成推薦結果
+const waitForRecommendations = async () => {
+  isWaitingForRecommendations.value = true;
+
+  // 立即檢查一次
+  if (await checkForRecommendations()) {
+    return;
+  }
+
+  // 設置輪詢間隔 (每5秒檢查一次)
+  const intervalId = setInterval(async () => {
+    if (await checkForRecommendations()) {
+      clearInterval(intervalId);
+    }
+  }, 5000);
+
+  // 設置超時 (60秒後停止等待)
+  setTimeout(() => {
+    if (isWaitingForRecommendations.value) {
+      clearInterval(intervalId);
+      isWaitingForRecommendations.value = false;
+      error.value = '等待推薦結果超時，請稍後重試';
+    }
+  }, 60000);
 };
 
 // 頁面初始化
@@ -122,6 +172,12 @@ onMounted(async () => {
     roomId.value = urlRoomId;
   }
 
+  // 獲取參與者ID
+  const savedParticipantId = localStorage.getItem('currentParticipantId');
+  if (savedParticipantId) {
+    participantId.value = savedParticipantId;
+  }
+
   // 獲取投票資料
   try {
     isLoading.value = true;
@@ -130,8 +186,30 @@ onMounted(async () => {
     console.log('房間投票資料:', roomData);
     votesData.value = roomData.votes || [];
 
-    // 獲取餐廳推薦
-    await fetchRecommendations(roomData);
+    // 確定當前用戶是否為房主
+    if (participantId.value && roomData.votes) {
+      const currentUserData = roomData.votes.find(v => v.participantId === participantId.value);
+      isRoomOwner.value = currentUserData?.isOwner === true;
+      console.log('當前用戶是否為房主:', isRoomOwner.value);
+    }
+
+    // 檢查是否已有推薦結果
+    const existingResults = await getRecommendationResults(roomId.value);
+    if (existingResults) {
+      console.log('已有推薦結果:', existingResults);
+      recommendations.value = existingResults.data.recommendations || [];
+      analysisStats.value = existingResults.data.analysisStats || null;
+    } else {
+      // 如果沒有結果，且是房主，則發起API請求
+      if (isRoomOwner.value) {
+        console.log('作為房主發起API請求...');
+        await fetchRecommendations(roomData);
+      } else {
+        // 不是房主，等待結果
+        console.log('非房主，等待推薦結果...');
+        waitForRecommendations();
+      }
+    }
 
   } catch (err) {
     console.error('獲取投票資料失敗:', err);
@@ -180,7 +258,7 @@ const openGoogleMap = (mapUrl) => {
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500 mb-4"></div>
       <div class="bg-gray-50 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
         <p class="text-lg font-medium text-gray-800">正在分析投票結果</p>
-        <p class="text-sm text-gray-600 mt-2">AI正在根據大家的投票進行餐廳推薦...</p>
+        <p class="text-sm text-gray-600 mt-2">正在獲取投票數據...</p>
         <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
           <div class="bg-red-500 h-2 rounded-full animate-pulse"></div>
         </div>
@@ -202,14 +280,34 @@ const openGoogleMap = (mapUrl) => {
       </div>
     </div>
 
-    <!-- API加載中畫面 -->
+    <!-- API加載中畫面 (房主) -->
     <div v-else-if="isApiLoading" class="w-full max-w-md mt-12 flex flex-col items-center justify-center">
       <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-red-500 mb-4"></div>
       <div class="bg-gray-50 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
         <p class="text-lg font-medium text-gray-800">正在生成餐廳推薦</p>
-        <p class="text-sm text-gray-600 mt-2">Gemini AI正在為您精選最適合的餐廳...</p>
+        <p class="text-sm text-gray-600 mt-2">AI正在為您精選最適合的餐廳...</p>
         <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
           <div class="bg-red-500 h-2 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 等待房主生成推薦結果 (非房主) -->
+    <div v-else-if="isWaitingForRecommendations" class="w-full max-w-md mt-12 flex flex-col items-center justify-center">
+      <div class="animate-pulse bg-gray-50 rounded-lg p-6 shadow-lg w-full max-w-md text-center">
+        <div class="flex justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p class="text-lg font-medium text-gray-800">等待餐廳推薦結果</p>
+        <p class="text-sm text-gray-600 mt-2">AI正在為大家獲取餐廳推薦，請稍候...</p>
+        <div class="mt-6 flex flex-col items-center">
+          <div class="flex space-x-2">
+            <div class="h-2 w-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="h-2 w-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            <div class="h-2 w-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.6s"></div>
+          </div>
         </div>
       </div>
     </div>
