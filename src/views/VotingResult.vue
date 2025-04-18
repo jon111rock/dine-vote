@@ -12,9 +12,7 @@ const toast = useToast();
 const isLoading = ref(true);
 const error = ref(null);
 const roomId = ref('');
-const unsubscribe = ref(null);
 const votesData = ref([]);
-const allVotingData = ref(null);
 
 // 頁面初始化
 onMounted(async () => {
@@ -36,29 +34,11 @@ onMounted(async () => {
   // 獲取投票資料
   try {
     isLoading.value = true;
-    const votes = await getRoomVotes(roomId.value);
+    const roomData = await getRoomVotes(roomId.value);
 
-    console.log('房間投票資料:', votes);
-    votesData.value = votes;
+    console.log('房間投票資料:', roomData);
+    votesData.value = roomData.votes;
 
-    // 分析投票資料
-    analyzeVotes(votes);
-
-    // 開始監聽投票資料變化
-    unsubscribe.value = watchRoomVotes(roomId.value, (data) => {
-      console.log('實時投票資料更新:', data);
-
-      if (data.error) {
-        error.value = data.error;
-        return;
-      }
-
-      allVotingData.value = data;
-      votesData.value = data.votes;
-
-      // 重新分析投票資料
-      analyzeVotes(data.votes);
-    });
   } catch (err) {
     console.error('獲取投票資料失敗:', err);
     error.value = err.message;
@@ -68,54 +48,6 @@ onMounted(async () => {
   }
 });
 
-// 清理資源
-onUnmounted(() => {
-  if (unsubscribe.value) {
-    unsubscribe.value();
-  }
-});
-
-// 處理投票資料
-const analyzeVotes = (votes) => {
-  if (!votes || votes.length === 0) {
-    console.log('沒有投票資料可分析');
-    return;
-  }
-
-  // 提取投票資料
-  const voteDetails = votes
-    .filter(vote => vote.voteData) // 只處理有投票資料的記錄
-    .map(vote => vote.voteData);
-
-  console.log('投票詳細資料:', voteDetails);
-
-  // 分析食物類型偏好
-  const foodPreferences = {};
-  voteDetails.forEach(vote => {
-    if (!vote.food) return;
-    foodPreferences[vote.food] = (foodPreferences[vote.food] || 0) + 1;
-  });
-  console.log('食物類型偏好:', foodPreferences);
-
-  // 分析口味偏好
-  const flavorPreferences = {};
-  voteDetails.forEach(vote => {
-    if (!vote.flavor) return;
-    flavorPreferences[vote.flavor] = (flavorPreferences[vote.flavor] || 0) + 1;
-  });
-  console.log('口味偏好:', flavorPreferences);
-
-  // 計算平均預算
-  const totalBudget = voteDetails.reduce((sum, vote) => sum + (vote.budget || 0), 0);
-  const averageBudget = voteDetails.length > 0 ? Math.round(totalBudget / voteDetails.length) : 0;
-  console.log('平均預算:', averageBudget);
-
-  // 收集所有建議
-  const comments = voteDetails
-    .filter(vote => vote.comment && vote.comment.trim() !== '')
-    .map(vote => vote.comment);
-  console.log('建議與評論:', comments);
-};
 
 // 返回首頁
 const goToHome = () => {

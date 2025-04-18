@@ -305,7 +305,10 @@ export const getRoomVotes = async (roomId) => {
       }
     })
     
-    return votes
+    // 地址資料
+    const addressData = roomData.location || {}
+
+    return {votes, addressData}
   } catch (error) {
     console.error('獲取投票資料失敗:', error)
     throw error
