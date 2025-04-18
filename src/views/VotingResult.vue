@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { getRoomVotes, watchRoomVotes } from '@/firebase/rooms';
-
+import { getRoomVotes } from '@/firebase/rooms';
+import axios from 'axios';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -39,13 +39,36 @@ onMounted(async () => {
     console.log('房間投票資料:', roomData);
     votesData.value = roomData.votes;
 
+
+    // 測試axios
+    const apiUrl = import.meta.env.VITE_DINE_GENUS_API_URL;
+    const response = await axios.post(`${apiUrl}/recommendations`, {
+      "votes": [
+        ...roomData.votes.map(vote => ({
+          "participantId": vote.participantId,
+          "participantName": vote.userId,
+          "foodType": `${vote.voteData.flavor}-${vote.voteData.food}`,
+          "budget": vote.voteData.budget,
+          "comments": vote.voteData.comments
+        }))
+      ],
+      "options": {
+        "language": "zh-TW",
+        "budgetCurrency": "TWD",
+        "locationContext": roomData.addressData.address,
+        "maxResults": 3,
+        "includeReasons": true
+      }
+    });
+    console.log('API回應:', response.data);
   } catch (err) {
-    console.error('獲取投票資料失敗:', err);
+    console.error('API回應失敗:', err);
     error.value = err.message;
-    toast.error(`獲取投票資料失敗: ${err.message}`);
+    toast.error(`API回應失敗: ${err.message}`);
   } finally {
     isLoading.value = false;
   }
+
 });
 
 
