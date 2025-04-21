@@ -305,7 +305,10 @@ export const getRoomVotes = async (roomId) => {
       }
     })
     
-    return votes
+    // 地址資料
+    const addressData = roomData.location || {}
+
+    return {votes, addressData}
   } catch (error) {
     console.error('獲取投票資料失敗:', error)
     throw error
@@ -371,4 +374,28 @@ export const watchRoomVotes = (roomId, onUpdate) => {
     console.error('監聽投票狀態失敗:', error)
     onUpdate({ error: error.message })
   })
+}
+
+// 獲取餐廳推薦結果
+export const getRecommendationResults = async (roomId) => {
+  try {
+    if (!roomId) {
+      throw new Error('缺少房間ID')
+    }
+    
+    const roomRef = doc(db, 'rooms', roomId)
+    const roomDoc = await getDoc(roomRef)
+    
+    if (!roomDoc.exists()) {
+      throw new Error('房間不存在')
+    }
+    
+    const roomData = roomDoc.data()
+    
+    // 返回推薦結果，如果不存在則返回null
+    return roomData.recommendations || null
+  } catch (error) {
+    console.error('獲取推薦結果失敗:', error)
+    throw error
+  }
 } 
