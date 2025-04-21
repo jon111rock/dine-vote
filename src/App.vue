@@ -1,5 +1,6 @@
 <script setup>
 import ToastContainer from '@/components/common/ToastContainer.vue'
+import ModalContainer from '@/components/common/ModalContainer.vue'
 </script>
 
 <template>
@@ -12,6 +13,7 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
       </router-view>
     </main>
     <ToastContainer />
+    <ModalContainer />
   </div>
 </template>
 
