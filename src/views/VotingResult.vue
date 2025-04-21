@@ -249,6 +249,22 @@ const openGoogleMap = (mapUrl) => {
     window.open(mapUrl, '_blank');
   }
 };
+
+// 新增下面的方法到script部分
+// 在 isRoomOwner 和 votesData 之後新增
+const restaurantImage = ref(null);
+
+// 處理圖片載入錯誤
+const handleImageError = (e) => {
+  // 設置一個預設圖片
+  e.target.src = '/images/default-restaurant.jpg';
+  // 如果預設圖片也無法載入，顯示預設UI
+  e.target.onerror = () => {
+    if (restaurantImage.value) {
+      restaurantImage.value.style.display = 'none';
+    }
+  };
+};
 </script>
 
 <template>
@@ -324,14 +340,20 @@ const openGoogleMap = (mapUrl) => {
 
       <!-- 推薦餐廳 -->
       <div v-if="currentRecommendation" class="pb-4">
-        <!-- 餐廳縮圖 (可替換為實際圖片) -->
-        <div class="h-[200px] w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center" @click="openGoogleMap(currentRecommendation.mapUrl)">
-          <div class="text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 22V12h6v10" />
-            </svg>
-            <p class="text-sm text-gray-600 mt-2">點擊查看地圖</p>
+        <!-- 餐廳照片 -->
+        <div class="h-[200px] w-full relative overflow-hidden" @click="openGoogleMap(currentRecommendation.mapUrl)">
+          <img v-if="currentRecommendation.photoUrl" :src="currentRecommendation.photoUrl" :alt="currentRecommendation.name" class="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105" @error="handleImageError" ref="restaurantImage" />
+          <div v-else class="h-full w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+            <div class="text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 22V12h6v10" />
+              </svg>
+              <p class="text-sm text-gray-600 mt-2">點擊查看地圖</p>
+            </div>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white p-3 pointer-events-none">
+            <p class="text-sm font-medium">點擊查看地圖位置</p>
           </div>
         </div>
 
