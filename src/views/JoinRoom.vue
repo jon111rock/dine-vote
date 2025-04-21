@@ -23,6 +23,24 @@ const roomCode = ref(props.roomCode || '')
 const isLoading = ref(false)
 const autoJoin = ref(false) // 標記是否為自動加入模式
 const hasTriedAutoJoin = ref(false) // 標記是否已嘗試過自動加入
+const sessionId = ref('')
+
+// 生成或獲取會話ID
+const getOrCreateSessionId = () => {
+  let existingId = localStorage.getItem('dineVoteSessionId')
+
+  if (!existingId) {
+    existingId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
+    localStorage.setItem('dineVoteSessionId', existingId)
+  }
+
+  return existingId
+}
+
+// 初始化會話ID
+onMounted(() => {
+  sessionId.value = getOrCreateSessionId()
+})
 
 // 監聽暱稱變化，支持動態暱稱設置後的重試
 watch(() => nicknameStorage.hasNickname(), (hasNickname) => {
@@ -104,10 +122,18 @@ const handleJoinRoom = async () => {
       return
     }
 
-    // 加入房間
+    // 加入房間，傳遞會話ID
     const userId = nicknameStorage.nickname.value
-    await joinRoom(room.id, userId)
-    toast.success('加入房間成功')
+    const result = await joinRoom(room.id, userId, sessionId.value)
+
+    if (result.isExisting) {
+      toast.info('使用已有的房間身份')
+    } else {
+      toast.success('加入房間成功')
+    }
+
+    // 將房間ID註冊為活躍分頁
+    localStorage.setItem(`dineVoteActiveRoom_${room.id}`, sessionId.value)
 
     // 跳轉到等待房間
     router.push(`/waiting-room?roomId=${room.id}`)

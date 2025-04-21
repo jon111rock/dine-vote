@@ -30,6 +30,11 @@ const isCopied = ref(false)
 // 清理函數
 const unsubscribe = ref(null)
 
+// 跨分頁通訊相關
+const tabChannel = ref(null)
+const sessionId = ref('')
+const isAlreadyInRoom = ref(false)
+
 // 計算屬性
 const participantsCount = computed(() => Object.keys(participants.value).length)
 const shareLink = computed(() => {
@@ -93,6 +98,138 @@ const getFirstLetter = (nickname) => {
  */
 const checkIsOwner = (participantData) => {
   return participantData.isOwner
+}
+
+// ===== 身份識別與分頁管理 =====
+/**
+ * 生成唯一的會話ID
+ * @returns {string} 唯一會話ID
+ */
+const generateSessionId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
+}
+
+/**
+ * 取得或創建會話ID
+ * @returns {string} 會話ID
+ */
+const getOrCreateSessionId = () => {
+  // 檢查是否已存在會話ID
+  let existingId = localStorage.getItem('dineVoteSessionId')
+
+  if (!existingId) {
+    // 創建新的會話ID
+    existingId = generateSessionId()
+    localStorage.setItem('dineVoteSessionId', existingId)
+  }
+
+  return existingId
+}
+
+/**
+ * 檢查是否已在其他分頁加入該房間
+ * @param {string} _roomId - 房間ID
+ * @returns {boolean} 是否已在其他分頁加入
+ */
+const checkIfAlreadyJoined = (_roomId) => {
+  const activeRoomKey = `dineVoteActiveRoom_${_roomId}`
+  const activeTabId = localStorage.getItem(activeRoomKey)
+
+  // 如果有活動分頁且不是當前分頁，表示已在其他分頁加入
+  if (activeTabId && activeTabId !== sessionId.value) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * 註冊當前分頁為房間活動分頁
+ * @param {string} _roomId - 房間ID
+ */
+const registerActiveTab = (_roomId) => {
+  const activeRoomKey = `dineVoteActiveRoom_${_roomId}`
+  localStorage.setItem(activeRoomKey, sessionId.value)
+
+  // 通知其他分頁
+  tabChannel.value.postMessage({
+    type: 'TAB_REGISTERED',
+    roomId: _roomId,
+    sessionId: sessionId.value
+  })
+}
+
+/**
+ * 註銷當前分頁作為房間活動分頁
+ * @param {string} _roomId - 房間ID
+ * @param {boolean} [notify=true] - 是否通知其他分頁
+ */
+const unregisterActiveTab = (_roomId, notify = true) => {
+  const activeRoomKey = `dineVoteActiveRoom_${_roomId}`
+  const currentActiveTab = localStorage.getItem(activeRoomKey)
+
+  // 只有當前分頁是活動分頁時才註銷
+  if (currentActiveTab === sessionId.value) {
+    localStorage.removeItem(activeRoomKey)
+
+    // 通知其他分頁
+    if (notify && tabChannel.value && !tabChannel.value.closed) {
+      try {
+        tabChannel.value.postMessage({
+          type: 'TAB_UNREGISTERED',
+          roomId: _roomId,
+          sessionId: sessionId.value
+        })
+      } catch (err) {
+        console.error('發送分頁消息失敗:', err)
+      }
+    }
+  }
+}
+
+/**
+ * 處理來自其他分頁的消息
+ * @param {MessageEvent} event - 消息事件
+ */
+const handleTabMessage = (event) => {
+  const { type, roomId: messageRoomId, sessionId: messageSessionId } = event.data
+
+  // 只處理與當前房間相關的消息
+  if (messageRoomId === roomId.value) {
+    if (type === 'TAB_REGISTERED' && messageSessionId !== sessionId.value) {
+      // 其他分頁已註冊為活動分頁
+      isAlreadyInRoom.value = true
+
+      // 提示用戶
+      toast.warning('您已在其他分頁中加入此房間')
+    } else if (type === 'TAB_UNREGISTERED' && messageSessionId !== sessionId.value) {
+      // 其他分頁已註銷活動狀態，可以接管
+      isAlreadyInRoom.value = false
+      registerActiveTab(roomId.value)
+    }
+  }
+}
+
+/**
+ * 初始化分頁通訊
+ */
+const initTabCommunication = () => {
+  // 初始化會話ID
+  sessionId.value = getOrCreateSessionId()
+
+  // 創建廣播通道
+  tabChannel.value = new BroadcastChannel('dineVoteTabChannel')
+  tabChannel.value.addEventListener('message', handleTabMessage)
+}
+
+/**
+ * 清理分頁通訊
+ */
+const cleanupTabCommunication = () => {
+  if (tabChannel.value) {
+    tabChannel.value.removeEventListener('message', handleTabMessage)
+    tabChannel.value.close()
+  }
 }
 
 // ===== 房間操作 =====
@@ -171,8 +308,14 @@ const handleLeaveRoom = async () => {
 
   try {
     isLoading.value = true
-    await leaveRoom(roomId.value, currentUserId.value)
+
+    // 先進行註銷活動分頁操作，確保在清理前執行
+    unregisterActiveTab(roomId.value)
+
+    // 然後進行離開房間的Firebase操作
+    await leaveRoom(roomId.value, currentUserId.value, sessionId.value)
     toast.success('已離開房間')
+
     router.push('/')
   } catch (err) {
     console.error('離開房間失敗:', err)
@@ -315,6 +458,26 @@ const handleVotingStarted = () => {
   }, 1000)
 }
 
+// ===== 頁面可見性處理 =====
+/**
+ * 處理頁面可見性變化
+ */
+const handleVisibilityChange = () => {
+  // 當頁面變為可見時
+  if (document.visibilityState === 'visible' && roomId.value) {
+    // 檢查是否已在其他分頁加入
+    isAlreadyInRoom.value = checkIfAlreadyJoined(roomId.value)
+
+    if (!isAlreadyInRoom.value) {
+      // 註冊為活動分頁
+      registerActiveTab(roomId.value)
+    } else {
+      // 提示用戶
+      toast.warning('您已在其他分頁中加入此房間')
+    }
+  }
+}
+
 // ===== 生命週期鉤子 =====
 onMounted(async () => {
   const urlRoomId = route.query.roomId
@@ -325,6 +488,27 @@ onMounted(async () => {
 
   roomId.value = urlRoomId
   currentUserId.value = nicknameStorage.nickname.value
+
+  // 初始化分頁通訊
+  initTabCommunication()
+
+  // 檢查是否已在其他分頁加入該房間
+  isAlreadyInRoom.value = checkIfAlreadyJoined(urlRoomId)
+
+  if (isAlreadyInRoom.value) {
+    toast.warning('您已在其他分頁中加入此房間')
+  } else {
+    // 註冊為活動分頁
+    registerActiveTab(urlRoomId)
+  }
+
+  // 監聽頁面可見性變化
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  // 監聽頁面卸載事件
+  window.addEventListener('beforeunload', () => {
+    unregisterActiveTab(urlRoomId, false)
+  })
 
   try {
     // 初始獲取房間數據
@@ -346,9 +530,21 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  // 先執行訂閱清理
   if (unsubscribe.value) {
     unsubscribe.value()
   }
+
+  // 先註銷活動分頁，因為這需要用到未關閉的tabChannel
+  if (roomId.value) {
+    unregisterActiveTab(roomId.value)
+  }
+
+  // 最後清理分頁通訊
+  cleanupTabCommunication()
+
+  // 移除事件監聽
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 
@@ -356,6 +552,13 @@ onUnmounted(() => {
   <div class="flex items-center h-screen flex-col">
     <div class="w-full max-w-md">
       <NavigationBack text="離開房間" :is-custom-action="true" @custom-action="handleLeaveRoom" />
+
+      <!-- 多分頁警告 -->
+      <div v-if="isAlreadyInRoom" class="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg">
+        <p class="text-sm font-medium">您已在其他分頁開啟此房間</p>
+        <p class="text-xs mt-1">建議關閉此分頁以避免重複參與</p>
+      </div>
+
       <div class="w-full bg-white rounded-lg p-8 shadow-lg">
         <!-- 房間標題和資訊 -->
         <div>
@@ -398,8 +601,9 @@ onUnmounted(() => {
         </div>
 
         <!-- 操作按鈕 -->
-        <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-8 cursor-pointer disabled:opacity-70" @click="startVoting" :disabled="isLoading">
+        <button class="w-full bg-red-gradient text-white px-4 py-2 rounded-lg mt-8 cursor-pointer disabled:opacity-70" @click="startVoting" :disabled="isLoading || isAlreadyInRoom">
           <span v-if="isLoading">處理中...</span>
+          <span v-else-if="isAlreadyInRoom">請在您的活動分頁操作</span>
           <span v-else>開始投票</span>
         </button>
       </div>
