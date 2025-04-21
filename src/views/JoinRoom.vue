@@ -21,20 +21,32 @@ const props = defineProps({
 
 const roomCode = ref(props.roomCode || '')
 const isLoading = ref(false)
+const autoJoin = ref(false) // 標記是否為自動加入模式
 
 // 如果有 URL 參數，自動填入房間代碼
 onMounted(() => {
   // 優先使用路由props中的roomCode
   if (props.roomCode) {
     roomCode.value = props.roomCode
+    autoJoin.value = true // 標記為自動加入模式
   }
   // 兼容舊版的code參數
   else if (route.query.code) {
     roomCode.value = route.query.code
+    autoJoin.value = true // 標記為自動加入模式
   }
   // 兼容URL參數
   else if (route.query.roomCode) {
     roomCode.value = route.query.roomCode
+    autoJoin.value = true // 標記為自動加入模式
+  }
+
+  // 如果自動填入了有效長度的代碼，且用戶已設置暱稱，則自動觸發加入按鈕
+  if (autoJoin.value && roomCode.value.length === 6 && nicknameStorage.hasNickname()) {
+    // 延遲300ms後觸發，給頁面時間渲染
+    setTimeout(() => {
+      handleJoinRoom()
+    }, 300)
   }
 })
 
