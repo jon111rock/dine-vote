@@ -341,92 +341,118 @@ const handleImageError = (e) => {
       <!-- 推薦餐廳 -->
       <div v-if="currentRecommendation" class="pb-4">
         <!-- 餐廳照片 -->
-        <div class="h-[200px] w-full relative overflow-hidden" @click="openGoogleMap(currentRecommendation.mapUrl)">
-          <img v-if="currentRecommendation.photoUrl" :src="currentRecommendation.photoUrl" :alt="currentRecommendation.name" class="w-full h-full object-cover cursor-pointer transition-transform hover:scale-105" @error="handleImageError" ref="restaurantImage" />
-          <div v-else class="h-full w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-            <div class="text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 22V12h6v10" />
-              </svg>
-              <p class="text-sm text-gray-600 mt-2">點擊查看地圖</p>
+        <div class="relative">
+          <div class="h-[250px] w-full relative overflow-hidden group" @click="openGoogleMap(currentRecommendation.mapUrl)">
+            <img v-if="currentRecommendation.photoUrl" :src="currentRecommendation.photoUrl" :alt="currentRecommendation.name" class="w-full h-full object-cover cursor-pointer transition-all duration-300 group-hover:scale-105" @error="handleImageError" ref="restaurantImage" />
+            <div v-else class="h-full w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+              <div class="text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 22V12h6v10" />
+                </svg>
+                <p class="text-sm text-gray-500 mt-2">暫無照片</p>
+              </div>
             </div>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white p-3 pointer-events-none">
-            <p class="text-sm font-medium">點擊查看地圖位置</p>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-sm font-medium">點擊查看地圖位置</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- 餐廳資訊 -->
         <div class="p-6">
           <!-- 餐廳名稱與評分 -->
-          <div class="flex items-center justify-between">
-            <span class="text-xl font-bold">{{ currentRecommendation.name }}</span>
-            <span v-if="currentRecommendation.rating" class="flex items-center gap-1 text-yellow-500 bg-yellow-50 px-2 py-1 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-              </svg>
-              <span class="font-medium">{{ currentRecommendation.rating }}</span>
-            </span>
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-gray-900">{{ currentRecommendation.name }}</h3>
+              <div class="flex items-center gap-2 mt-1">
+                <div v-if="currentRecommendation.rating" class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span class="font-semibold text-gray-900">{{ currentRecommendation.rating.score }}</span>
+                  </div>
+                  <span class="text-sm text-gray-500">/{{ currentRecommendation.rating.outOf }}</span>
+                  <span class="text-sm text-gray-500">·</span>
+                  <span class="text-sm text-gray-500">{{ currentRecommendation.rating.count }} 則評價</span>
+                </div>
+                <span v-if="currentRecommendation.rating?.source" class="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+                  {{ currentRecommendation.rating.source }}
+                </span>
+              </div>
+            </div>
           </div>
 
           <!-- 餐廳類型標籤 -->
-          <div class="flex flex-wrap items-center gap-2 mt-3">
-            <span v-for="(type, index) in currentRecommendation.type.split(',')" :key="index" class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">
+          <div class="flex flex-wrap items-center gap-2 mt-4">
+            <span v-for="(type, index) in currentRecommendation.type.split(',')" :key="index" class="text-xs font-medium bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">
               {{ type.trim() }}
             </span>
-            <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+            <span class="text-xs font-medium bg-amber-50 text-amber-700 px-3 py-1 rounded-full border border-amber-100">
               {{ currentRecommendation.priceRange }}
             </span>
           </div>
 
           <!-- 地址 -->
-          <div class="flex items-center text-sm text-gray-600 mt-4 cursor-pointer" @click="openGoogleMap(currentRecommendation.mapUrl)">
+          <div class="flex items-center text-sm text-gray-600 mt-4 hover:text-gray-900 transition-colors duration-200 cursor-pointer" @click="openGoogleMap(currentRecommendation.mapUrl)">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span>{{ currentRecommendation.address }}</span>
+            <span class="hover:underline">{{ currentRecommendation.address }}</span>
           </div>
 
           <!-- 推薦理由 -->
-          <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p class="text-sm font-bold text-gray-700">AI推薦理由：</p>
-            <ul class="mt-2 text-sm text-gray-600 pl-5 list-disc space-y-1">
-              <li v-for="(reason, index) in currentRecommendation.reasons" :key="index">
-                {{ reason }}
+          <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <p class="text-sm font-bold text-gray-800 mb-3">AI推薦理由</p>
+            <ul class="space-y-2">
+              <li v-for="(reason, index) in currentRecommendation.reasons" :key="index" class="flex items-start gap-2 text-sm text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ reason }}</span>
               </li>
             </ul>
           </div>
 
           <!-- 推薦菜品 -->
-          <div v-if="currentRecommendation.dishes && currentRecommendation.dishes.length" class="mt-4">
-            <p class="text-sm font-bold text-gray-700">推薦菜品：</p>
-            <div class="flex flex-wrap gap-2 mt-2">
-              <span v-for="(dish, index) in currentRecommendation.dishes" :key="index" class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full border border-green-100">
+          <div v-if="currentRecommendation.dishes && currentRecommendation.dishes.length" class="mt-6">
+            <p class="text-sm font-bold text-gray-800 mb-3">推薦菜品</p>
+            <div class="flex flex-wrap gap-2">
+              <span v-for="(dish, index) in currentRecommendation.dishes" :key="index" class="text-xs font-medium bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-100 hover:bg-green-100 transition-colors duration-200">
                 {{ dish }}
               </span>
             </div>
           </div>
 
           <!-- 分頁指示器 -->
-          <div v-if="totalRecommendations > 1" class="flex items-center justify-between mt-6">
-            <button @click="showPreviousRecommendation" class="flex items-center text-gray-600 disabled:opacity-50" :disabled="currentRecommendationIndex === 0">
+          <div v-if="totalRecommendations > 1" class="flex items-center justify-between mt-8">
+            <button @click="showPreviousRecommendation" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" :disabled="currentRecommendationIndex === 0">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
               上一個
             </button>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center gap-2">
               <div v-for="(_, index) in recommendations" :key="index" :class="[
-                'h-2 w-2 rounded-full',
-                index === currentRecommendationIndex ? 'bg-red-500' : 'bg-gray-300'
+                'h-2 w-2 rounded-full transition-all duration-200',
+                index === currentRecommendationIndex
+                  ? 'bg-red-500 w-4'
+                  : 'bg-gray-300 hover:bg-gray-400'
               ]">
               </div>
             </div>
 
-            <button @click="showNextRecommendation" class="flex items-center text-gray-600 disabled:opacity-50" :disabled="currentRecommendationIndex === totalRecommendations - 1">
+            <button @click="showNextRecommendation" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" :disabled="currentRecommendationIndex === totalRecommendations - 1">
               下一個
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -435,7 +461,7 @@ const handleImageError = (e) => {
           </div>
 
           <!-- 分享按鈕 -->
-          <button class="w-full bg-red-gradient text-white px-4 py-3 rounded-lg mt-6 flex items-center justify-center font-medium" @click="copyShareLink">
+          <button class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3.5 rounded-xl mt-6 flex items-center justify-center font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-500/25" @click="copyShareLink">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
@@ -454,28 +480,51 @@ const handleImageError = (e) => {
       </div>
 
       <!-- 統計摘要 -->
-      <div v-if="analysisStats" class="px-6 pb-4 mt-4">
-        <div class="p-4 rounded-lg bg-gray-50">
-          <h3 class="text-sm font-bold text-gray-700">投票統計</h3>
+      <div v-if="analysisStats" class="px-6 pb-6 mt-6">
+        <div class="p-5 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200">
+          <h3 class="text-sm font-bold text-gray-900 mb-4">投票統計</h3>
 
-          <div class="grid grid-cols-2 gap-4 mt-3">
-            <div class="text-center p-2 bg-white rounded shadow-sm">
-              <p class="text-xs text-gray-500">參與投票</p>
-              <p class="text-lg font-bold text-indigo-600">{{ analysisStats.participantCount }}人</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-gray-500">參與投票</p>
+                  <p class="text-xl font-bold text-indigo-600 mt-1">{{ analysisStats.participantCount }}人</p>
+                </div>
+                <div class="p-2 bg-indigo-50 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
-            <div class="text-center p-2 bg-white rounded shadow-sm">
-              <p class="text-xs text-gray-500">平均預算</p>
-              <p class="text-lg font-bold text-green-600">NT${{ Math.round(analysisStats.averageBudget) }}</p>
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-gray-500">平均預算</p>
+                  <p class="text-xl font-bold text-green-600 mt-1">NT${{ Math.round(analysisStats.averageBudget) }}</p>
+                </div>
+                <div class="p-2 bg-green-50 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div v-if="analysisStats.topFoodTypes && analysisStats.topFoodTypes.length" class="mt-3">
-            <p class="text-xs text-gray-500">最受歡迎類型</p>
-            <div class="flex flex-wrap gap-2 mt-1">
-              <div v-for="(type, index) in analysisStats.topFoodTypes" :key="index" class="flex items-center text-xs bg-white px-2 py-1 rounded shadow-sm">
-                <span class="font-medium">{{ type.type }}</span>
-                <span class="text-gray-500 ml-1">({{ Math.round(type.percentage) }}%)</span>
+          <div v-if="analysisStats.topFoodTypes && analysisStats.topFoodTypes.length" class="mt-4">
+            <p class="text-xs text-gray-500 mb-2">最受歡迎類型</p>
+            <div class="flex flex-wrap gap-2">
+              <div v-for="(type, index) in analysisStats.topFoodTypes" :key="index" class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-100">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">{{ type.type }}</p>
+                  <div class="mt-1 w-full bg-gray-100 rounded-full h-1.5">
+                    <div class="bg-blue-500 h-1.5 rounded-full" :style="{ width: `${type.percentage}%` }"></div>
+                  </div>
+                </div>
+                <span class="text-xs font-medium text-gray-500">{{ Math.round(type.percentage) }}%</span>
               </div>
             </div>
           </div>
@@ -483,13 +532,13 @@ const handleImageError = (e) => {
       </div>
 
       <!-- 操作按鈕 -->
-      <div class="flex flex-col items-center mt-4 px-6 pb-6">
-        <p class="text-sm font-bold text-gray-700">滿意這個結果嗎?</p>
-        <div class="flex items-center gap-3 mt-3 w-full">
-          <button class="flex-1 bg-red-gradient text-white p-3 rounded-lg font-medium shadow-sm" @click="goToHome">
+      <div class="flex flex-col items-center mt-6 px-6 pb-6">
+        <p class="text-sm font-bold text-gray-900 mb-3">滿意這個結果嗎?</p>
+        <div class="flex items-center gap-3 w-full">
+          <button class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3.5 rounded-xl font-medium shadow-lg shadow-red-500/25 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]" @click="goToHome">
             滿意
           </button>
-          <button class="flex-1 border border-gray-300 bg-white text-gray-700 p-3 rounded-lg font-medium shadow-sm" @click="restartVoting">
+          <button class="flex-1 border border-gray-200 bg-white text-gray-700 py-3.5 rounded-xl font-medium shadow-sm hover:border-gray-300 hover:bg-gray-50 transition-all duration-200" @click="restartVoting">
             重新投票
           </button>
         </div>
