@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { getRoomByCode, joinRoom } from '@/firebase/rooms'
@@ -22,27 +22,40 @@ const props = defineProps({
 const roomCode = ref(props.roomCode || '')
 const isLoading = ref(false)
 const autoJoin = ref(false) // 標記是否為自動加入模式
+const hasTriedAutoJoin = ref(false) // 標記是否已嘗試過自動加入
+
+// 監聽暱稱變化，支持動態暱稱設置後的重試
+watch(() => nicknameStorage.hasNickname(), (hasNickname) => {
+  // 如果暱稱已設置，且標記為自動加入，且尚未嘗試過自動加入
+  if (hasNickname && autoJoin.value && !hasTriedAutoJoin.value && roomCode.value.length === 6) {
+    hasTriedAutoJoin.value = true
+    setTimeout(() => {
+      handleJoinRoom()
+    }, 300)
+  }
+})
 
 // 如果有 URL 參數，自動填入房間代碼
 onMounted(() => {
   // 優先使用路由props中的roomCode
   if (props.roomCode) {
     roomCode.value = props.roomCode
-    autoJoin.value = true // 標記為自動加入模式
+    autoJoin.value = true
   }
   // 兼容舊版的code參數
   else if (route.query.code) {
     roomCode.value = route.query.code
-    autoJoin.value = true // 標記為自動加入模式
+    autoJoin.value = true
   }
   // 兼容URL參數
   else if (route.query.roomCode) {
     roomCode.value = route.query.roomCode
-    autoJoin.value = true // 標記為自動加入模式
+    autoJoin.value = true
   }
 
   // 如果自動填入了有效長度的代碼，且用戶已設置暱稱，則自動觸發加入按鈕
   if (autoJoin.value && roomCode.value.length === 6 && nicknameStorage.hasNickname()) {
+    hasTriedAutoJoin.value = true
     // 延遲300ms後觸發，給頁面時間渲染
     setTimeout(() => {
       handleJoinRoom()
