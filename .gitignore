@@ -7,14 +7,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build outputs
 dist
 dist-ssr
+coverage
 *.local
+build
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -22,6 +30,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.history
+.project
+Thumbs.db
 
 # Environment variables
 .env
@@ -32,6 +43,9 @@ dist-ssr
 firebase-debug.log*
 firebase-debug.*.log*
 .firebase/
+firestore-debug.log*
+ui-debug.log*
+.runtimeconfig.json
 
 # Design and Documentation
 src/design/
@@ -48,3 +62,19 @@ docs/
 
 # Cursor specific
 .cursorrules
+/.cursor/runtime/
+/.cursor/
+
+# Temporary files
+.temp
+.tmp
+.cache
+*.bak
+*.swp
+*.tmp
+
+# OS generated files
+.directory
+.fuse_hidden*
+.Trash-*
+.nfs*

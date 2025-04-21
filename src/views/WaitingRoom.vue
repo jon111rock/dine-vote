@@ -25,12 +25,18 @@ const currentUserId = ref('')
 const isOwner = ref(false)
 const isLoading = ref(false)
 const isNavigating = ref(false)
+const isCopied = ref(false)
 
 // 清理函數
 const unsubscribe = ref(null)
 
 // 計算屬性
 const participantsCount = computed(() => Object.keys(participants.value).length)
+const shareLink = computed(() => {
+  if (!roomCode.value) return ''
+  const baseUrl = window.location.origin
+  return `${baseUrl}/join-room?roomCode=${roomCode.value}`
+})
 
 // ===== 參與者UI處理 =====
 // 顏色管理
@@ -191,6 +197,43 @@ const copyRoomCode = async () => {
   }
 }
 
+/**
+ * 分享房間連結
+ * 顯示包含連結的Modal，並提供複製功能
+ */
+const showShareModal = () => {
+  modal.openModal({
+    title: '分享房間',
+    message: '將此連結分享給好友，邀請他們加入房間',
+    confirmText: '複製連結',
+    cancelText: '取消',
+    confirmCallback: copyShareLink,
+    cancelCallback: () => { },
+    type: 'info'
+  })
+}
+
+/**
+ * 複製分享連結到剪貼板
+ */
+const copyShareLink = async () => {
+  if (!shareLink.value) return
+
+  try {
+    await navigator.clipboard.writeText(shareLink.value)
+    toast.success('分享連結已複製')
+    isCopied.value = true
+
+    // 3秒後重置複製狀態
+    setTimeout(() => {
+      isCopied.value = false
+    }, 3000)
+  } catch (err) {
+    console.error('複製分享連結失敗:', err)
+    toast.error('複製失敗')
+  }
+}
+
 // ===== 投票相關功能 =====
 /**
  * 開始投票流程
@@ -315,13 +358,24 @@ onUnmounted(() => {
       <NavigationBack text="離開房間" :is-custom-action="true" @custom-action="handleLeaveRoom" />
       <div class="w-full bg-white rounded-lg p-8 shadow-lg">
         <!-- 房間標題和資訊 -->
-        <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold">等待其他玩家加入</h1>
-          <div class="flex items-center gap-2">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h1 class="text-2xl font-bold">等待其他玩家加入</h1>
             <span v-if="isOwner" class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-lg">房主</span>
-            <span @click="copyRoomCode" class="text-xs text-indigo-800 cursor-pointer bg-indigo-100 px-2 py-1 rounded-lg hover:bg-indigo-200 transition-colors">
-              房間代碼：{{ roomCode }}
-            </span>
+          </div>
+
+          <!-- 房間代碼和分享按鈕 -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <span @click="copyRoomCode" class="text-xs text-indigo-800 cursor-pointer bg-indigo-100 px-2 py-1 rounded-lg hover:bg-indigo-200 transition-colors">
+                房間代碼：{{ roomCode }}
+              </span>
+              <button @click="showShareModal" class="ml-2 text-indigo-600 hover:text-indigo-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
