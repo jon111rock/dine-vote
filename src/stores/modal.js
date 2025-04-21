@@ -10,7 +10,8 @@ export const useModalStore = defineStore('modal', () => {
     confirmText, 
     cancelText, 
     confirmCallback = () => {}, 
-    cancelCallback = () => {}
+    cancelCallback = () => {},
+    type = 'info'
   }) => {
     modal.value = {
       title,
@@ -18,7 +19,8 @@ export const useModalStore = defineStore('modal', () => {
       confirmText,
       cancelText,
       confirmCallback,
-      cancelCallback
+      cancelCallback,
+      type
     }
   }
 

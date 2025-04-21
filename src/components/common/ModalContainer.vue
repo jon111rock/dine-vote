@@ -10,7 +10,7 @@ const modalStore = useModalStore()
   <Transition name="modal-backdrop">
     <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50" v-if="modalStore.modal">
       <Transition name="modal-content">
-        <Modal :title="modalStore.modal.title" :message="modalStore.modal.message" />
+        <Modal :type="modalStore.modal.type" :title="modalStore.modal.title" :message="modalStore.modal.message" />
       </Transition>
     </div>
   </Transition>

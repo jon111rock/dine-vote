@@ -6,6 +6,10 @@ import { computed } from 'vue'
 const modalStore = useModalStore()
 
 const props = defineProps({
+  type: {
+    type: String,
+    default: 'info'
+  },
   title: {
     type: String,
     required: true,
@@ -40,7 +44,7 @@ const handleCancel = () => {
 
 <template>
   <div class="min-w-[300px] bg-white p-8 rounded-lg shadow-lg flex flex-col items-center gap-4">
-    <DIcon type="info" size="12" />
+    <DIcon :type="props.type" size="12" />
     <h1 class="text-xl font-bold">{{ props.title }}</h1>
     <p class="text-gray-500">{{ props.message }}</p>
     <div class="flex gap-4 w-full">
