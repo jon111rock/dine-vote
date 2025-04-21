@@ -179,36 +179,78 @@ onUnmounted(() => {
 // 範例選項資料
 const foodOptions = [{
   label: '飯食',
-  description: '米飯、燉飯、炒飯等',
-  value: 'rice',
+  description: '各式飯類料理',
+  value: '飯類',
 }, {
   label: '麵食',
-  description: '義大利麵、炒麵等',
-  value: 'noodle',
+  description: '各式麵類料理',
+  value: '麵類',
 }, {
-  label: '其他',
-  description: '漢堡、三明治、披薩等',
-  value: 'other',
+  label: '鍋物',
+  description: '火鍋、麻辣燙、涮涮鍋',
+  value: '鍋物',
+}, {
+  label: '燒烤',
+  description: '燒肉、串燒、炭烤',
+  value: '燒烤',
+}, {
+  label: '小吃',
+  description: '滷味、炸物、餃子等',
+  value: '小吃',
+}, {
+  label: '速食',
+  description: '漢堡、披薩、炸雞等',
+  value: '速食',
+}, {
+  label: '素食',
+  description: '蔬食、素食料理',
+  value: '素食',
+}, {
+  label: '便當',
+  description: '自助餐、便當、餐盒',
+  value: '便當',
 }, {
   label: '沒意見',
-  value: 'none',
+  description: '都可以',
+  value: '無'
 }]
 
 const flavorOptions = [{
   label: '中式',
-  description: '炒飯、炒麵、炒麵等',
-  value: 'chinese',
+  description: '川菜、粵菜、台菜等',
+  value: '中式',
 }, {
-  label: '西式',
-  description: '義大利麵、披薩、漢堡等',
-  value: 'western',
+  label: '台式',
+  description: '台灣小吃、熱炒、便當等',
+  value: '台式',
 }, {
   label: '日式',
-  description: '拉麵、壽司、丼飯等',
-  value: 'japanese',
+  description: '壽司、拉麵、丼飯等',
+  value: '日式',
+}, {
+  label: '韓式',
+  description: '韓式燒肉、韓式料理等',
+  value: '韓式',
+}, {
+  label: '泰式',
+  description: '泰式料理、東南亞美食',
+  value: '泰式',
+}, {
+  label: '義式',
+  description: '義大利麵、披薩、燉飯等',
+  value: '義式',
+}, {
+  label: '美式',
+  description: '漢堡、牛排、墨西哥捲等',
+  value: '美式',
+}, {
+  label: '港式',
+  description: '茶餐廳、港式點心等',
+  value: '港式',
 }, {
   label: '沒意見',
-  value: 'none',
+  description: '都可以',
+  value: '無'
 }]
 </script>
 
