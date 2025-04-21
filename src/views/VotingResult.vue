@@ -515,17 +515,14 @@ const handleImageError = (e) => {
         </div>
       </div>
 
-      <!-- 操作按鈕 -->
-      <div class="flex flex-col items-center mt-6 px-6 pb-6">
-        <p class="text-sm font-bold text-gray-900 mb-3">滿意這個結果嗎?</p>
-        <div class="flex items-center gap-3 w-full">
-          <button class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3.5 rounded-xl font-medium shadow-lg shadow-red-500/25 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]" @click="goToHome">
-            滿意
-          </button>
-          <button class="flex-1 border border-gray-200 bg-white text-gray-700 py-3.5 rounded-xl font-medium shadow-sm hover:border-gray-300 hover:bg-gray-50 transition-all duration-200" @click="restartVoting">
-            重新投票
-          </button>
-        </div>
+      <!-- 返回首頁按鈕 -->
+      <div class="px-6 pb-6">
+        <button @click="goToHome" class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3.5 rounded-xl font-medium shadow-lg shadow-red-500/25 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          返回首頁
+        </button>
       </div>
     </div>
   </div>
