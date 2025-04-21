@@ -5,13 +5,14 @@ import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { leaveRoom, getRoomById, watchRoom, updateRoomVotingStatus } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
+import { useModal } from '@/composables/useModal'
 
 // 基本狀態管理
 const route = useRoute()
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
-
+const modal = useModal()
 // 房間狀態
 const roomId = ref('')
 const roomCode = ref('')
@@ -197,6 +198,27 @@ const copyRoomCode = async () => {
 const startVoting = async () => {
   if (isLoading.value || isNavigating.value) return
 
+  // 根據是否為房主顯示不同的提示信息
+  const message = isOwner.value
+    ? '開始投票後所有成員將進入投票頁面，確定要開始嗎？'
+    : '確定要開始投票嗎？'
+
+  // 顯示確認Modal
+  modal.openModal({
+    title: '確認開始投票',
+    message,
+    confirmText: '開始投票',
+    cancelText: '再等等',
+    confirmCallback: confirmStartVoting,
+    cancelCallback: () => { },
+    type: 'info'
+  })
+}
+
+/**
+ * 確認開始投票後執行
+ */
+const confirmStartVoting = async () => {
   try {
     isLoading.value = true
     const currentParticipantId = getCurrentParticipantId()
