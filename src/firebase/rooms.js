@@ -398,4 +398,34 @@ export const getRecommendationResults = async (roomId) => {
     console.error('獲取推薦結果失敗:', error)
     throw error
   }
+}
+
+/**
+ * 更新房間投票狀態
+ * @param {string} roomId - 房間ID
+ * @param {string} status - 狀態 ('waiting', 'active', 'completed')
+ * @returns {Promise<boolean>} 更新結果
+ */
+export const updateRoomVotingStatus = async (roomId, status) => {
+  try {
+    if (!roomId) {
+      throw new Error('未提供房間ID')
+    }
+    
+    if (!['waiting', 'active', 'completed'].includes(status)) {
+      throw new Error('無效的投票狀態')
+    }
+    
+    const roomRef = doc(db, 'rooms', roomId)
+    await updateDoc(roomRef, {
+      votingStatus: status,
+      votingUpdatedAt: serverTimestamp()
+    })
+    
+    console.log(`已更新房間 ${roomId} 投票狀態為: ${status}`)
+    return true
+  } catch (error) {
+    console.error('更新投票狀態失敗:', error)
+    throw error
+  }
 } 
