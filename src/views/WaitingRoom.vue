@@ -358,10 +358,14 @@ onUnmounted(() => {
       <NavigationBack text="離開房間" :is-custom-action="true" @custom-action="handleLeaveRoom" />
       <div class="w-full bg-white rounded-lg p-8 shadow-lg">
         <!-- 房間標題和資訊 -->
-        <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold">等待其他玩家加入</h1>
-          <div class="flex items-center gap-2">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h1 class="text-2xl font-bold">等待其他玩家加入</h1>
             <span v-if="isOwner" class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-lg">房主</span>
+          </div>
+
+          <!-- 房間代碼和分享按鈕 -->
+          <div class="flex items-center justify-between">
             <div class="flex items-center">
               <span @click="copyRoomCode" class="text-xs text-indigo-800 cursor-pointer bg-indigo-100 px-2 py-1 rounded-lg hover:bg-indigo-200 transition-colors">
                 房間代碼：{{ roomCode }}
