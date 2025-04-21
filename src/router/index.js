@@ -36,7 +36,17 @@ const routes = [
   {
     path: '/join-room',
     name: 'JoinRoom',
-    component: JoinRoom
+    component: JoinRoom,
+    props: (route) => ({
+      roomCode: route.query.roomCode || ''
+    })
+  },
+  {
+    path: '/join',
+    redirect: to => {
+      // 將 /join?roomCode=XXXXXX 重定向到 /join-room?roomCode=XXXXXX
+      return { path: '/join-room', query: { roomCode: to.query.roomCode } }
+    }
   },
   {
     path: '/:pathMatch(.*)*',

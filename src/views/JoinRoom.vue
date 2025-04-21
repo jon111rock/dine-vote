@@ -11,14 +11,30 @@ const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 
-const roomCode = ref('')
+// 接收從路由傳遞的props
+const props = defineProps({
+  roomCode: {
+    type: String,
+    default: ''
+  }
+})
+
+const roomCode = ref(props.roomCode || '')
 const isLoading = ref(false)
 
 // 如果有 URL 參數，自動填入房間代碼
 onMounted(() => {
-  const urlRoomCode = route.query.code
-  if (urlRoomCode) {
-    roomCode.value = urlRoomCode
+  // 優先使用路由props中的roomCode
+  if (props.roomCode) {
+    roomCode.value = props.roomCode
+  }
+  // 兼容舊版的code參數
+  else if (route.query.code) {
+    roomCode.value = route.query.code
+  }
+  // 兼容URL參數
+  else if (route.query.roomCode) {
+    roomCode.value = route.query.roomCode
   }
 })
 
@@ -119,3 +135,9 @@ const handleKeydown = (e) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.bg-red-gradient {
+  background: linear-gradient(to right, #f43f5e, #ef4444);
+}
+</style>
