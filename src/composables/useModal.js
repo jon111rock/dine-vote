@@ -5,16 +5,17 @@ export const useModal = () => {
 
   /**
    * 開啟 Modal
-   * @param {string} title - Modal 標題
-   * @param {string} message - Modal 訊息
-   * @param {string} cancelText - 取消按鈕文字
-   * @param {string} confirmText - 確定按鈕文字
-   * @param {string} type - Modal 類型
-   * @param {function} cancelCallback - 取消按鈕點擊事件
-   * @param {function} confirmCallback - 確定按鈕點擊事件
+   * @param {Object} options - Modal 配置選項
+   * @param {string} options.title - Modal 標題
+   * @param {string} options.message - Modal 訊息
+   * @param {string} options.cancelText - 取消按鈕文字
+   * @param {string} options.confirmText - 確定按鈕文字
+   * @param {function} options.cancelCallback - 取消按鈕點擊事件
+   * @param {function} options.confirmCallback - 確定按鈕點擊事件
+   * @param {string} options.type - Modal 類型 (info, success, warning, error)
    */
-  const openModal = (title, message, cancelText, confirmText, cancelCallback, confirmCallback, type) => {
-    modalStore.openModal(title, message, cancelText, confirmText, cancelCallback, confirmCallback, type)
+  const openModal = (options) => {
+    modalStore.openModal(options)
   }
 
   /**
