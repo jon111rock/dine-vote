@@ -13,10 +13,13 @@ const nicknameStorage = useNicknameStorage()
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-const { user, logout } = useAuth()
+const { user, logout, initialize } = useAuth()
 const shouldRedirect = ref(false)
 const redirectPath = ref('')
 const isLogoutLoading = ref(false)
+
+// 初始化用戶
+initialize();
 
 // 計算屬性：顯示用戶名稱
 const userDisplayName = computed(() => {

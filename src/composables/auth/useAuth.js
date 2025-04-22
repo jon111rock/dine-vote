@@ -45,6 +45,7 @@ export function useAuth() {
   // 處理身份驗證錯誤
   const handleAuthError = (error) => {
     loading.value = false;
+    console.log('error', error.code);
     
     // 對應不同錯誤碼提供友好的錯誤信息
     const errorMessages = {
@@ -66,7 +67,8 @@ export function useAuth() {
       'auth/requires-recent-login': '請重新登入以進行此操作',
       'auth/unauthorized-domain': '當前網域未獲授權',
       'auth/web-storage-unsupported': '當前瀏覽器不支持Web存儲',
-      'auth/quota-exceeded': '配額超出限制'
+      'auth/quota-exceeded': '配額超出限制',
+      'auth/invalid-credential': '找不到帳號或密碼'
     };
     
     // 檢查是否為特殊錯誤情況：API方法被阻擋
