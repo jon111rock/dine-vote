@@ -277,11 +277,7 @@ const updateParticipants = (newParticipants) => {
  * 處理房間被刪除的情況
  */
 const handleRoomDeleted = () => {
-  toast.success('房主已離開房間')
-  // 延遲跳轉，讓使用者看到提示訊息
-  setTimeout(() => {
-    router.push('/')
-  }, 1500)
+  router.push('/')
 }
 
 /**
