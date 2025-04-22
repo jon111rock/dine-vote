@@ -149,7 +149,6 @@ export function useAuth() {
     try {
       await signOut(auth);
       user.value = null;
-      toast.success('已登出');
       return true;
     } catch (err) {
       handleAuthError(err);
