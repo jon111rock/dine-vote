@@ -30,10 +30,19 @@ export function useNicknameStorage() {
     return !!nickname.value
   }
 
+  const shouldUpdateFromDisplayName = (displayName) => {
+    if (!displayName || hasNickname()) {
+      return false
+    }
+    
+    return displayName.trim() !== nickname.value
+  }
+
   return {
     nickname,
     saveNickname,
     clearNickname,
-    hasNickname
+    hasNickname,
+    shouldUpdateFromDisplayName
   }
 } 

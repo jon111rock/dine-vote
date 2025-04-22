@@ -1,17 +1,36 @@
 <script setup>
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import NicknameEditor from '@/components/profile/NicknameEditor.vue'
+import LogoHeader from '@/components/common/LogoHeader.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from '@/composables/useToast'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { STORAGE_KEYS } from '@/constants/storage-keys'
+import { useAuth } from '@/composables/auth/useAuth'
 
 const nicknameStorage = useNicknameStorage()
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const { user } = useAuth()
 const shouldRedirect = ref(false)
 const redirectPath = ref('')
+
+// 計算屬性：是否應該提示用戶使用顯示名稱
+const shouldSuggestDisplayNameAsNickname = computed(() => {
+  if (!user.value || !user.value.displayName) return false;
+  return nicknameStorage.shouldUpdateFromDisplayName(user.value.displayName);
+})
+
+// 使用顯示名稱作為暱稱
+const useDisplayNameAsNickname = () => {
+  if (user.value?.displayName) {
+    const success = nicknameStorage.saveNickname(user.value.displayName);
+    if (success) {
+      toast.success('已使用您的帳號名稱作為暱稱');
+    }
+  }
+}
 
 // 檢查URL參數
 onMounted(() => {
@@ -80,37 +99,51 @@ const navigateToJoinRoom = () => {
 </script>
 
 <template>
-  <div class="flex justify-center items-center min-h-screen py-8 px-4 sm:py-12 w-full">
-    <div class="w-full max-w-md">
-      <!-- Logo 和標語 -->
-      <div class="flex flex-col items-center mb-6 sm:mb-8">
-        <h1 class="text-3xl sm:text-4xl mb-2 text-logo-gradient font-medium">DineVote</h1>
-        <p class="text-gray-600 text-sm sm:text-base">一起決定今天吃什麼！</p>
-      </div>
+  <div class="flex flex-col min-h-screen w-full">
+    <!-- 主要內容 -->
+    <div class="flex justify-center items-center flex-grow py-8 px-4 sm:py-12 w-full">
+      <div class="w-full max-w-md">
+        <!-- Logo 和標語 -->
+        <LogoHeader />
 
-      <!-- 提示訊息 -->
-      <div v-if="route.query.requireNickname === 'true'" class="mb-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-        <p class="text-blue-700">請先設置暱稱，設置完成後將自動導航至目標頁面</p>
-      </div>
-
-      <!-- 主卡片 -->
-      <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-6">
-        <p class="text-xl font-medium text-gray-700 mb-4">{{ nicknameStorage.hasNickname() ? '歡迎回來！' : '設置您的暱稱' }}</p>
-        <div>
-          <NicknameEditor @nickname-saved="handleNicknameSaved" />
+        <!-- 提示訊息 -->
+        <div v-if="route.query.requireNickname === 'true'" class="mb-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <p class="text-blue-700">請先設置暱稱，設置完成後將自動導航至目標頁面</p>
         </div>
-      </div>
 
-      <!-- 底部按鈕 -->
-      <div class="w-full flex gap-3 sm:gap-4">
-        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToCreateRoom">創建房間</button>
-        <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToJoinRoom">加入房間</button>
-      </div>
+        <!-- 使用顯示名稱提示 -->
+        <div v-if="shouldSuggestDisplayNameAsNickname" class="mb-4 bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
+          <div class="flex justify-between items-center">
+            <p class="text-indigo-700">想使用您的帳號名稱「{{ user.displayName }}」作為暱稱嗎？</p>
+            <button @click="useDisplayNameAsNickname" class="ml-4 px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors text-sm whitespace-nowrap">
+              使用
+            </button>
+          </div>
+        </div>
 
-      <!-- 版本資訊 -->
-      <div class="mt-6 text-center">
-        <p class="text-xs text-gray-500">版本 1.0.0</p>
+        <!-- 主卡片 -->
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-6">
+          <p class="text-xl font-medium text-gray-700 mb-4">{{ nicknameStorage.hasNickname() ? '歡迎回來！' : '設置您的暱稱' }}</p>
+          <div>
+            <NicknameEditor @nickname-saved="handleNicknameSaved" :default-value="user?.displayName" />
+          </div>
+        </div>
+
+        <!-- 底部按鈕 -->
+        <div class="w-full flex gap-3 sm:gap-4">
+          <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToCreateRoom">創建房間</button>
+          <button class="cursor-pointer w-1/2 bg-white rounded-md p-2 py-3 shadow-md text-gray-700 font-medium text-sm sm:text-base hover:shadow-lg transition-shadow" @click="navigateToJoinRoom">加入房間</button>
+        </div>
+
+        <!-- 版本資訊 -->
+        <div class="mt-6 text-center">
+          <p class="text-xs text-gray-500">版本 1.0.0</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 只保留必要的樣式 */
+</style>

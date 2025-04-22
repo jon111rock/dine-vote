@@ -88,7 +88,7 @@ const fetchRecommendations = async (roomData) => {
         includeReasons: true
       }
     }, {
-      timeout: 15000 // 設置15秒超時
+      timeout: 30000 // 設置30秒超時
     });
 
     if (response.data && response.data.success) {

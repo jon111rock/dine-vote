@@ -101,7 +101,7 @@ onMounted(() => {
     <div class="flex gap-2">
       <!-- 圖標 -->
       <div class="flex-shrink-0">
-        <DIcon :type="type" :size="12" />
+        <DIcon :type="type" size="12" />
       </div>
       <!-- 文字 -->
       <div class="flex-grow">

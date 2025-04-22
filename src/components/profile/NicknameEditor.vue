@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { useToast } from '@/composables/useToast'
 
@@ -7,6 +7,10 @@ const props = defineProps({
   showSaveButton: {
     type: Boolean,
     default: true
+  },
+  defaultValue: {
+    type: String,
+    default: ''
   }
 })
 
@@ -27,7 +31,19 @@ const currentNickname = computed(() => nicknameStorage.nickname.value)
 
 // 監聽暱稱變化
 onMounted(() => {
-  inputNickname.value = currentNickname.value
+  // 如果有默認值且沒有已儲存的暱稱，使用默認值
+  if (props.defaultValue && !nicknameStorage.hasNickname()) {
+    inputNickname.value = props.defaultValue
+  } else {
+    inputNickname.value = currentNickname.value
+  }
+})
+
+// 監聽 defaultValue 的變化
+watch(() => props.defaultValue, (newValue) => {
+  if (newValue && !nicknameStorage.hasNickname()) {
+    inputNickname.value = newValue
+  }
 })
 
 // 切換編輯模式
