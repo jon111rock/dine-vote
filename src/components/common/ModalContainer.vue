@@ -8,7 +8,7 @@ const modalStore = useModalStore()
 
 <template>
   <Transition name="modal-backdrop">
-    <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50" v-if="modalStore.modal">
+    <div class="fixed inset-0 flex items-center justify-center bg-black/60 z-50 p-4 sm:p-2" v-if="modalStore.modal">
       <Transition name="modal-content">
         <Modal :type="modalStore.modal.type" :title="modalStore.modal.title" :message="modalStore.modal.message" />
       </Transition>
