@@ -40,12 +40,26 @@ Thumbs.db
 !.env.example
 
 # Firebase
+firebase.json
+firebase
 firebase-debug.log*
 firebase-debug.*.log*
 .firebase/
 firestore-debug.log*
 ui-debug.log*
 .runtimeconfig.json
+database-debug.log*
+pubsub-debug.log*
+functions/.env
+functions/node_modules/
+.firebaserc
+firebase-export-*
+emulator-data/
+.emulator.config.js
+firebase-adminsdk-*.json
+service-account-*.json
+# 保留 firebase.json，它是配置文件
+# firebase.json
 
 # Design and Documentation
 src/design/
