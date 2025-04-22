@@ -1,10 +1,34 @@
 <script setup>
 import LogoHeader from '@/components/common/LogoHeader.vue';
 import DIcon from '@/components/common/DIcon.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useAuth } from '@/composables/auth/useAuth';
+import { useToast } from '@/composables/useToast';
+import { useRouter, useRoute } from 'vue-router';
+
+// 初始化身份驗證
+const auth = useAuth();
+const toast = useToast();
+const router = useRouter();
+const route = useRoute();
 
 // 頁面狀態管理
 const activeTab = ref('login'); // 'login' 或 'register'
+const isSubmitting = ref(false); // 提交狀態
+
+// 表單驗證錯誤
+const formErrors = ref({
+  login: {
+    email: '',
+    password: ''
+  },
+  register: {
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  }
+});
 
 // 表單數據
 const loginForm = ref({
@@ -26,27 +50,150 @@ const passwordStrength = ref('medium'); // 'weak', 'medium', 'strong'
 
 // 切換標籤頁
 const switchTab = (tab) => {
+  // 切換頁籤時重置錯誤訊息
+  formErrors.value = {
+    login: { email: '', password: '' },
+    register: { name: '', email: '', password: '', confirmPassword: '' }
+  };
   activeTab.value = tab;
 };
 
+// 驗證登入表單
+const validateLoginForm = () => {
+  let isValid = true;
+  const errors = formErrors.value.login;
+
+  // 重置錯誤訊息
+  errors.email = '';
+  errors.password = '';
+
+  // 驗證電子郵件
+  if (!loginForm.value.email) {
+    errors.email = '請輸入電子郵件';
+    isValid = false;
+  } else if (!/^\S+@\S+\.\S+$/.test(loginForm.value.email)) {
+    errors.email = '請輸入有效的電子郵件格式';
+    isValid = false;
+  }
+
+  // 驗證密碼
+  if (!loginForm.value.password) {
+    errors.password = '請輸入密碼';
+    isValid = false;
+  }
+
+  return isValid;
+};
+
+// 驗證註冊表單
+const validateRegisterForm = () => {
+  let isValid = true;
+  const errors = formErrors.value.register;
+
+  // 重置錯誤訊息
+  errors.name = '';
+  errors.email = '';
+  errors.password = '';
+  errors.confirmPassword = '';
+
+  // 驗證姓名
+  if (!registerForm.value.name) {
+    errors.name = '請輸入姓名';
+    isValid = false;
+  }
+
+  // 驗證電子郵件
+  if (!registerForm.value.email) {
+    errors.email = '請輸入電子郵件';
+    isValid = false;
+  } else if (!/^\S+@\S+\.\S+$/.test(registerForm.value.email)) {
+    errors.email = '請輸入有效的電子郵件格式';
+    isValid = false;
+  }
+
+  // 驗證密碼
+  if (!registerForm.value.password) {
+    errors.password = '請輸入密碼';
+    isValid = false;
+  } else if (registerForm.value.password.length < 8) {
+    errors.password = '密碼長度必須至少為8個字符';
+    isValid = false;
+  }
+
+  // 驗證確認密碼
+  if (!registerForm.value.confirmPassword) {
+    errors.confirmPassword = '請再次輸入密碼';
+    isValid = false;
+  } else if (registerForm.value.password !== registerForm.value.confirmPassword) {
+    errors.confirmPassword = '兩次輸入的密碼不一致';
+    isValid = false;
+  }
+
+  // 驗證服務條款
+  if (!registerForm.value.agreeTerms) {
+    toast.error('請同意服務條款和隱私政策');
+    isValid = false;
+  }
+
+  return isValid;
+};
+
 // 登入表單提交
-const handleLogin = (e) => {
+const handleLogin = async (e) => {
   e.preventDefault();
-  console.log('登入表單提交：', loginForm.value);
-  // 實際登入功能待實現
+
+  if (!validateLoginForm()) {
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    await auth.login(loginForm.value.email, loginForm.value.password);
+
+    // 成功登入後重定向
+    const redirectPath = route.query.redirect || '/';
+    router.push(redirectPath);
+  } catch (error) {
+    // 錯誤處理已經在 useAuth 中完成
+    console.error('登入失敗:', error);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 // 註冊表單提交
-const handleRegister = (e) => {
+const handleRegister = async (e) => {
   e.preventDefault();
-  console.log('註冊表單提交：', registerForm.value);
-  // 實際註冊功能待實現
+
+  if (!validateRegisterForm()) {
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    await auth.register(
+      registerForm.value.email,
+      registerForm.value.password,
+      registerForm.value.name
+    );
+
+    // 成功註冊後自動切換到登入頁籤
+    switchTab('login');
+    toast.success('註冊成功！請登入您的帳號');
+  } catch (error) {
+    // 錯誤處理已經在 useAuth 中完成
+    console.error('註冊失敗:', error);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 // 社交媒體登入
 const handleSocialLogin = (provider) => {
   console.log(`使用 ${provider} 登入`);
-  // 實際社交媒體登入功能待實現
+  toast.info(`${provider} 登入功能正在開發中`);
 };
 
 // 計算密碼強度
@@ -102,7 +249,8 @@ const updatePasswordStrength = () => {
             <form v-if="activeTab === 'login'" @submit="handleLogin" key="login" class="form-panel">
               <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">電子郵件</label>
-                <input v-model="loginForm.email" type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" placeholder="請輸入您的電子郵件">
+                <input v-model="loginForm.email" type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.login.email }" placeholder="請輸入您的電子郵件">
+                <p v-if="formErrors.login.email" class="mt-1 text-sm text-red-600">{{ formErrors.login.email }}</p>
               </div>
 
               <div class="mb-4">
@@ -110,7 +258,8 @@ const updatePasswordStrength = () => {
                   <label for="password" class="block text-sm font-medium text-gray-700">密碼</label>
                   <a href="#" class="text-xs text-indigo-600 hover:text-indigo-800">忘記密碼？</a>
                 </div>
-                <input v-model="loginForm.password" type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" placeholder="請輸入您的密碼">
+                <input v-model="loginForm.password" type="password" id="password" autocomplete="current-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.login.password }" placeholder="請輸入您的密碼">
+                <p v-if="formErrors.login.password" class="mt-1 text-sm text-red-600">{{ formErrors.login.password }}</p>
               </div>
 
               <div class="mb-6">
@@ -120,8 +269,15 @@ const updatePasswordStrength = () => {
                 </label>
               </div>
 
-              <button type="submit" class="w-full text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-lg">
-                登入
+              <button type="submit" class="w-full text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-lg" :disabled="isSubmitting">
+                <span v-if="!isSubmitting">登入</span>
+                <span v-else class="flex items-center justify-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  處理中...
+                </span>
               </button>
             </form>
 
@@ -129,17 +285,20 @@ const updatePasswordStrength = () => {
             <form v-else-if="activeTab === 'register'" @submit="handleRegister" key="register" class="form-panel">
               <div class="mb-4 form-field animate-field">
                 <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
-                <input v-model="registerForm.name" type="text" id="register-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" placeholder="請輸入您的姓名">
+                <input v-model="registerForm.name" type="text" id="register-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.name }" placeholder="請輸入您的姓名">
+                <p v-if="formErrors.register.name" class="mt-1 text-sm text-red-600">{{ formErrors.register.name }}</p>
               </div>
 
               <div class="mb-4 form-field animate-field" style="animation-delay: 0.05s;">
                 <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">電子郵件</label>
-                <input v-model="registerForm.email" type="email" id="register-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" placeholder="請輸入您的電子郵件">
+                <input v-model="registerForm.email" type="email" id="register-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.email }" placeholder="請輸入您的電子郵件">
+                <p v-if="formErrors.register.email" class="mt-1 text-sm text-red-600">{{ formErrors.register.email }}</p>
               </div>
 
               <div class="mb-4 form-field animate-field" style="animation-delay: 0.1s;">
                 <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">密碼</label>
-                <input v-model="registerForm.password" @input="updatePasswordStrength" type="password" id="register-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" placeholder="請設定密碼">
+                <input v-model="registerForm.password" @input="updatePasswordStrength" type="password" id="register-password" autocomplete="new-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.password }" placeholder="請設定密碼">
+                <p v-if="formErrors.register.password" class="mt-1 text-sm text-red-600">{{ formErrors.register.password }}</p>
 
                 <!-- 密碼強度指示器 -->
                 <div class="h-1 rounded-sm overflow-hidden mt-1">
@@ -162,7 +321,8 @@ const updatePasswordStrength = () => {
 
               <div class="mb-4 form-field animate-field" style="animation-delay: 0.15s;">
                 <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">確認密碼</label>
-                <input v-model="registerForm.confirmPassword" type="password" id="confirm-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" placeholder="請再次輸入密碼">
+                <input v-model="registerForm.confirmPassword" type="password" id="confirm-password" autocomplete="new-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.confirmPassword }" placeholder="請再次輸入密碼">
+                <p v-if="formErrors.register.confirmPassword" class="mt-1 text-sm text-red-600">{{ formErrors.register.confirmPassword }}</p>
               </div>
 
               <div class="mb-6 form-field animate-field" style="animation-delay: 0.2s;">
@@ -174,8 +334,15 @@ const updatePasswordStrength = () => {
                 </label>
               </div>
 
-              <button type="submit" class="w-full text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-lg form-field animate-field" style="animation-delay: 0.25s;">
-                註冊帳號
+              <button type="submit" class="w-full text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-lg form-field animate-field" style="animation-delay: 0.25s;" :disabled="isSubmitting">
+                <span v-if="!isSubmitting">註冊帳號</span>
+                <span v-else class="flex items-center justify-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  處理中...
+                </span>
               </button>
             </form>
           </transition>
@@ -190,11 +357,11 @@ const updatePasswordStrength = () => {
 
         <!-- 社交媒體登入 -->
         <div class="grid grid-cols-2 gap-4">
-          <button @click="handleSocialLogin('Google')" class="flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:shadow-md hover:-translate-y-1 transition-all social-button">
-            <DIcon type="google" :size="5" class="mr-2" />
+          <button @click="handleSocialLogin('Google')" type="button" class="flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:shadow-md hover:-translate-y-1 transition-all social-button">
+            <DIcon type="google" size="5" class="mr-2" />
             <span class="text-gray-700 font-medium">Google</span>
           </button>
-          <button @click="handleSocialLogin('Facebook')" class="flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:shadow-md hover:-translate-y-1 transition-all social-button">
+          <button @click="handleSocialLogin('Facebook')" type="button" class="flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:shadow-md hover:-translate-y-1 transition-all social-button">
             <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
             </svg>
@@ -225,9 +392,14 @@ button[type="submit"] {
   transition: all 0.3s ease;
 }
 
-button[type="submit"]:hover {
+button[type="submit"]:hover:not(:disabled) {
   background: linear-gradient(to right, #FF5252, #FF1744);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* 漸變背景 */

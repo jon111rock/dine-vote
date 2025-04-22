@@ -8,7 +8,7 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: 12
+    default: '12'
   }
 })
 
@@ -22,7 +22,8 @@ const iconClass = computed(() => {
 })
 
 const iconSize = computed(() => {
-  return `w-${props.size} h-${props.size}`
+  const sizeValue = String(props.size);
+  return `w-${sizeValue} h-${sizeValue}`
 })
 
 </script>
