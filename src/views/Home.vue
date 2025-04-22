@@ -1,6 +1,7 @@
 <script setup>
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import NicknameEditor from '@/components/profile/NicknameEditor.vue'
+import LogoHeader from '@/components/common/LogoHeader.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 import { onMounted, ref } from 'vue'
@@ -83,10 +84,7 @@ const navigateToJoinRoom = () => {
   <div class="flex justify-center items-center min-h-screen py-8 px-4 sm:py-12 w-full">
     <div class="w-full max-w-md">
       <!-- Logo 和標語 -->
-      <div class="flex flex-col items-center mb-6 sm:mb-8">
-        <h1 class="text-3xl sm:text-4xl mb-2 text-logo-gradient font-medium">DineVote</h1>
-        <p class="text-gray-600 text-sm sm:text-base">一起決定今天吃什麼！</p>
-      </div>
+      <LogoHeader />
 
       <!-- 提示訊息 -->
       <div v-if="route.query.requireNickname === 'true'" class="mb-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
