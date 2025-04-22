@@ -1,10 +1,49 @@
 <script setup>
 import ToastContainer from '@/components/common/ToastContainer.vue'
 import ModalContainer from '@/components/common/ModalContainer.vue'
+import UserDropdown from '@/components/profile/UserDropdown.vue'
+import { useAuth } from '@/composables/auth/useAuth'
+import { useToast } from '@/composables/useToast'
+import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
+import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+
+const { user, logout, initialize } = useAuth()
+const toast = useToast()
+const nicknameStorage = useNicknameStorage()
+const router = useRouter()
+const isLogoutLoading = ref(false)
+
+// 初始化身份驗證
+onMounted(() => {
+  initialize()
+})
+
+// 處理登出
+const handleLogout = async () => {
+  isLogoutLoading.value = true
+  try {
+    await logout()
+    toast.success('登出成功')
+    // 清除暱稱資料
+    nicknameStorage.clearNickname()
+    // 重定向至登入頁
+    router.push('/login')
+  } catch (error) {
+    toast.error('登出失敗：' + error.message)
+  } finally {
+    isLogoutLoading.value = false
+  }
+}
 </script>
 
 <template>
-  <div>
+  <div class="app-container">
+    <!-- 全局用戶下拉菜單 -->
+    <div v-if="user" class="global-user-dropdown">
+      <UserDropdown :user="user" @logout="handleLogout" />
+    </div>
+
     <main class="router-view-container">
       <router-view v-slot="{ Component }">
         <transition name="page" mode="out-in" appear>
@@ -12,6 +51,7 @@ import ModalContainer from '@/components/common/ModalContainer.vue'
         </transition>
       </router-view>
     </main>
+
     <ToastContainer />
     <ModalContainer />
   </div>
@@ -36,5 +76,19 @@ import ModalContainer from '@/components/common/ModalContainer.vue'
 .page-leave-to {
   opacity: 0;
   transform: translateX(-20px);
+}
+
+/* 全局用戶下拉菜單樣式 */
+.global-user-dropdown {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
+
+/* 確保應用程序容器有適當的間距 */
+.app-container {
+  min-height: 100vh;
+  position: relative;
 }
 </style>
