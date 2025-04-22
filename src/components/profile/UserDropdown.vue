@@ -111,7 +111,7 @@ onUnmounted(() => {
     </button>
 
     <!-- 下拉選單 -->
-    <div v-if="isOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden backdrop-blur-md bg-white/95 animation-dropdown">
+    <div v-if="isOpen" class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-100 overflow-hidden backdrop-blur-md bg-white/95 animation-dropdown">
       <!-- 用戶資訊區塊 -->
       <div class="p-4 border-b border-gray-100">
         <p class="font-medium text-gray-800">{{ displayName }}</p>
