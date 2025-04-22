@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { createRoom } from '@/firebase/rooms'
@@ -7,10 +7,12 @@ import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 import useGoogleMapsAutocomplete from '@/composables/maps/useGoogleMapsAutocomplete'
 import { useCurrentLocation } from '@/composables/maps/useCurrentLocation'
+import { useRoomStore } from '@/stores/room'
 
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
+const roomStore = useRoomStore()
 
 const roomName = ref('')
 const locationInput = ref(null)
@@ -96,7 +98,14 @@ const handleCreateRoom = async () => {
     roomData.expiryTime = parseInt(expiryTime.value)
     roomData.isAnonymous = isAnonymous.value
 
+    
     const room = await createRoom(roomData)
+    
+    roomStore.setRoomStore({
+      roomName: roomName.value.trim(),
+      roomId: room.id,
+      roomOwner: userId
+    })
     router.push(`/waiting-room?roomId=${room.id}`)
   } catch (err) {
     console.error('創建房間失敗:', err)

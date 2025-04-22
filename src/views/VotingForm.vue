@@ -2,16 +2,16 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { useNicknameStorage } from '@/composables/storage/useNicknameStorage';
 import { submitVote, watchRoomVotes } from '@/firebase/rooms';
 import OptionGroup from '@/components/voting/OptionGroup.vue';
 import BudgetSlider from '@/components/voting/BudgetSlider.vue';
 import CommentInput from '@/components/voting/CommentInput.vue';
+import { useRoomStore } from '@/stores/room';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const nicknameStorage = useNicknameStorage();
+const { roomStore } = useRoomStore();
 
 // 表單資料
 const selectedFood = ref(null);
@@ -258,7 +258,7 @@ const flavorOptions = [{
   <div class="flex items-center flex-col p-2">
     <div class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4 mb-4">
       <div class="flex justify-between items-center gap-2">
-        <h1 class="text-xl font-bold">晚餐吃什麼 ?</h1>
+        <h1 class="text-xl font-bold">{{ roomStore.roomName }}</h1>
         <div class="flex flex-col items-center">
           <p class="text-sm text-gray-500">投票剩餘時間</p>
           <p class="text-xl text-indigo-600 font-bold">{{ remainingTime }}</p>

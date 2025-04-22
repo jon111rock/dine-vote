@@ -4,10 +4,12 @@ import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
 import { getRoomVotes, getRecommendationResults } from '@/firebase/rooms';
 import axios from 'axios';
+import { useRoomStore } from '@/stores/room';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const { roomStore } = useRoomStore();
 
 // 狀態
 const isLoading = ref(true);
@@ -333,7 +335,7 @@ const handleImageError = (e) => {
       <!-- 頭部 -->
       <div class="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
         <div class="flex flex-col items-center gap-2">
-          <h1 class="text-2xl font-bold">決定了！</h1>
+          <h1 class="text-2xl font-bold">{{ roomStore.roomName }}</h1>
           <p class="text-sm">根據{{ votesData.length }}位成員的投票結果</p>
         </div>
       </div>
@@ -419,7 +421,7 @@ const handleImageError = (e) => {
 
           <!-- 分頁指示器 -->
           <div v-if="totalRecommendations > 1" class="flex items-center justify-between mt-8">
-            <button @click="showPreviousRecommendation" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" :disabled="currentRecommendationIndex === 0">
+            <button @click="showPreviousRecommendation" class="cursor-pointer flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" :disabled="currentRecommendationIndex === 0">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
@@ -436,7 +438,7 @@ const handleImageError = (e) => {
               </div>
             </div>
 
-            <button @click="showNextRecommendation" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" :disabled="currentRecommendationIndex === totalRecommendations - 1">
+            <button @click="showNextRecommendation" class="cursor-pointer flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200" :disabled="currentRecommendationIndex === totalRecommendations - 1">
               下一個
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
