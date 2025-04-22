@@ -7,7 +7,7 @@ import DIcon from '@/components/common/DIcon.vue'
   <div class="w-full h-screen flex justify-center items-center">
     <div class="w-full max-w-md">
       <LogoHeader />
-      <div class="bg-gray-100 rounded-xl shadow-lg p-7">
+      <div class="bg-gray-100 rounded-xl shadow-lg p-8">
         <div class="flex justify-around text-gray-600">
           <button class="w-full border-b-2 border-b-orange-600 p-3 text-orange-600">登入</button>
           <button class="w-full border-b-1 border-b-gray-200 p-3">註冊</button>
