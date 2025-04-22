@@ -333,14 +333,14 @@ const updatePasswordStrength = () => {
         </div>
 
         <!-- 分隔線 -->
-        <div class="flex items-center my-6">
+        <!-- <div class="flex items-center my-6">
           <div class="flex-grow border-t border-gray-300"></div>
           <span class="px-3 text-gray-500 text-sm">或使用</span>
           <div class="flex-grow border-t border-gray-300"></div>
-        </div>
+        </div> -->
 
         <!-- 社交媒體登入 -->
-        <div class="grid grid-cols-2 gap-4">
+        <!-- <div class="grid grid-cols-2 gap-4">
           <button @click="handleSocialLogin('Google')" type="button" class="flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:shadow-md hover:-translate-y-1 transition-all social-button">
             <DIcon type="google" size="5" class="mr-2" />
             <span class="text-gray-700 font-medium">Google</span>
@@ -351,7 +351,7 @@ const updatePasswordStrength = () => {
             </svg>
             <span class="text-gray-700 font-medium">Facebook</span>
           </button>
-        </div>
+        </div> -->
       </div>
 
       <!-- 底部連結 -->
