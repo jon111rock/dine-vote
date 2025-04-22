@@ -107,7 +107,6 @@ export function useAuth() {
         photoURL: userCredential.user.photoURL
       };
       
-      toast.success('註冊成功！');
       return userCredential.user;
     } catch (err) {
       handleAuthError(err);
