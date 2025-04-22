@@ -113,6 +113,7 @@ const navigateToCreateRoom = () => {
 const navigateToJoinRoom = () => {
   router.push('/join-room')
 }
+console.log('version',import.meta.env.VITE_APP_VERSION);
 
 const version = computed(() => {
   return import.meta.env.VITE_APP_VERSION
