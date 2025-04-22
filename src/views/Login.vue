@@ -249,7 +249,7 @@ const updatePasswordStrength = () => {
             <form v-if="activeTab === 'login'" @submit="handleLogin" key="login" class="form-panel">
               <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">電子郵件</label>
-                <input v-model="loginForm.email" type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.login.email }" placeholder="請輸入您的電子郵件">
+                <input v-model="loginForm.email" type="email" id="email" autocomplete="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.login.email }" placeholder="請輸入您的電子郵件">
                 <p v-if="formErrors.login.email" class="mt-1 text-sm text-red-600">{{ formErrors.login.email }}</p>
               </div>
 
@@ -285,13 +285,13 @@ const updatePasswordStrength = () => {
             <form v-else-if="activeTab === 'register'" @submit="handleRegister" key="register" class="form-panel">
               <div class="mb-4 form-field animate-field">
                 <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
-                <input v-model="registerForm.name" type="text" id="register-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.name }" placeholder="請輸入您的姓名">
+                <input v-model="registerForm.name" type="text" id="register-name" autocomplete="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.name }" placeholder="請輸入您的姓名">
                 <p v-if="formErrors.register.name" class="mt-1 text-sm text-red-600">{{ formErrors.register.name }}</p>
               </div>
 
               <div class="mb-4 form-field animate-field" style="animation-delay: 0.05s;">
                 <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">電子郵件</label>
-                <input v-model="registerForm.email" type="email" id="register-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.email }" placeholder="請輸入您的電子郵件">
+                <input v-model="registerForm.email" type="email" id="register-email" autocomplete="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.email }" placeholder="請輸入您的電子郵件">
                 <p v-if="formErrors.register.email" class="mt-1 text-sm text-red-600">{{ formErrors.register.email }}</p>
               </div>
 
