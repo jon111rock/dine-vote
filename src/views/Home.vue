@@ -79,31 +79,6 @@ onMounted(() => {
   }
 })
 
-// 處理暱稱儲存成功事件
-const handleNicknameSaved = (nickname) => {
-  console.log('暱稱已儲存:', nickname)
-
-  // 處理保存後的重定向邏輯
-  if (shouldRedirect.value && redirectPath.value) {
-    // 顯示成功訊息
-    toast.success('暱稱設置成功，正在跳轉...')
-
-    // 延遲跳轉，確保用戶看到成功消息
-    setTimeout(() => {
-      // 清除重定向信息
-      sessionStorage.removeItem(STORAGE_KEYS.REDIRECT_AFTER_NICKNAME)
-      // 執行跳轉
-      router.push(redirectPath.value)
-    }, 800)
-  } else {
-    // 一般情況下的默認行為
-    toast.success('暱稱設置成功')
-    setTimeout(() => {
-      router.push('/create-room')
-    }, 800)
-  }
-}
-
 // 導航到創建房間頁面
 const navigateToCreateRoom = () => {
   router.push('/create-room')
@@ -152,7 +127,7 @@ const version = computed(() => {
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-6">
           <p class="text-xl font-medium text-gray-700 mb-4">{{ nicknameStorage.hasNickname() ? '歡迎回來！' : '設置您的暱稱' }}</p>
           <div>
-            <NicknameEditor @nickname-saved="handleNicknameSaved" :default-value="user?.displayName" />
+            <NicknameEditor :default-value="user?.displayName" />
           </div>
         </div>
 
