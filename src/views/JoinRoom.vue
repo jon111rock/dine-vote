@@ -5,11 +5,13 @@ import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { getRoomByCode, joinRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
+import { useRoomStore } from '@/stores/room'
 
 const route = useRoute()
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
+const roomStore = useRoomStore()
 
 // 接收從路由傳遞的props
 const props = defineProps({
@@ -118,6 +120,12 @@ const handleJoinRoom = async () => {
 
     // 驗證房間
     const room = await validateRoom()
+    roomStore.setRoomStore({
+      roomName: room.name,
+      roomId: room.id,
+      roomOwner: room.owner
+    })
+    
     if (!room) {
       return
     }
