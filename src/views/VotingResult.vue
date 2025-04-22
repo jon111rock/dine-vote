@@ -335,7 +335,7 @@ const handleImageError = (e) => {
       <!-- 頭部 -->
       <div class="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
         <div class="flex flex-col items-center gap-2">
-          <h1 class="text-2xl font-bold">{{ roomStore.roomName }}</h1>
+          <h1 class="text-2xl font-bold">{{ roomStore?.roomName || '無法取得房間名稱' }}</h1>
           <p class="text-sm">根據{{ votesData.length }}位成員的投票結果</p>
         </div>
       </div>
