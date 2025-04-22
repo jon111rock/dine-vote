@@ -173,8 +173,6 @@ const handleRegister = async (e) => {
       registerForm.value.name
     );
 
-    toast.success('註冊成功！正在為您登入...');
-
     // 自動登入
     try {
       await auth.login(

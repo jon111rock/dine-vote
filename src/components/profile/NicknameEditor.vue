@@ -113,7 +113,7 @@ const cancelEdit = () => {
         <input ref="nicknameInput" v-model="inputNickname" type="text" class="w-full border-2 border-gray-300 rounded-md p-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" placeholder="請輸入暱稱" @keyup.enter="saveNickname" @keyup.esc="cancelEdit">
       </div>
       <div class="flex gap-2">
-        <button class="cursor-pointer flex-1 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md py-2 px-4 flex items-center justify-center gap-1 transition-colors" @click="saveNickname">
+        <button :disabled="!inputNickname" class="disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer flex-1 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md py-2 px-4 flex items-center justify-center gap-1 transition-colors" @click="saveNickname">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>

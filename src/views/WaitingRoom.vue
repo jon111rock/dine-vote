@@ -277,11 +277,7 @@ const updateParticipants = (newParticipants) => {
  * 處理房間被刪除的情況
  */
 const handleRoomDeleted = () => {
-  toast.success('房主已離開房間')
-  // 延遲跳轉，讓使用者看到提示訊息
-  setTimeout(() => {
-    router.push('/')
-  }, 1500)
+  router.push('/')
 }
 
 /**
@@ -422,7 +418,6 @@ const confirmStartVoting = async () => {
     // 如果是房主，更新房間狀態
     if (isOwner.value) {
       await updateRoomVotingStatus(roomId.value, 'active')
-      toast.success('已通知所有成員進入投票')
     }
 
     // 導航到投票頁面

@@ -106,7 +106,7 @@ const startWatchingVotes = () => {
 
     // 如果所有人都投票完成，跳轉到結果頁面
     if (data.allVoted && data.totalParticipants > 0) {
-      toast.success('所有人都已完成投票！');
+      // toast.success('所有人都已完成投票！');
       setTimeout(() => {
         router.push(`/voting-result?roomId=${roomId.value}`);
       }, 1500);

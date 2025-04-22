@@ -107,7 +107,6 @@ export function useAuth() {
         photoURL: userCredential.user.photoURL
       };
       
-      toast.success('註冊成功！');
       return userCredential.user;
     } catch (err) {
       handleAuthError(err);
@@ -149,7 +148,6 @@ export function useAuth() {
     try {
       await signOut(auth);
       user.value = null;
-      toast.success('已登出');
       return true;
     } catch (err) {
       handleAuthError(err);
