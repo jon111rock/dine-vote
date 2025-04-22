@@ -23,16 +23,6 @@ const shouldSuggestDisplayNameAsNickname = computed(() => {
   return nicknameStorage.shouldUpdateFromDisplayName(user.value.displayName);
 })
 
-// 使用顯示名稱作為暱稱
-const useDisplayNameAsNickname = () => {
-  if (user.value?.displayName) {
-    const success = nicknameStorage.saveNickname(user.value.displayName);
-    if (success) {
-      toast.success('已使用您的帳號名稱作為暱稱');
-    }
-  }
-}
-
 // 處理登出
 const handleLogout = async () => {
   try {
@@ -110,18 +100,9 @@ const version = computed(() => {
 
         <!-- 提示訊息 -->
         <div v-if="route.query.requireNickname === 'true'" class="mb-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-          <p class="text-blue-700">請先設置暱稱，設置完成後將自動導航至目標頁面</p>
+          <p class="text-blue-700">請先設置暱稱</p>
         </div>
 
-        <!-- 使用顯示名稱提示 -->
-        <div v-if="shouldSuggestDisplayNameAsNickname" class="mb-4 bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
-          <div class="flex justify-between items-center">
-            <p class="text-indigo-700">想使用您的帳號名稱「{{ user.displayName }}」作為暱稱嗎？</p>
-            <button @click="useDisplayNameAsNickname" class="ml-4 px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors text-sm whitespace-nowrap">
-              使用
-            </button>
-          </div>
-        </div>
 
         <!-- 主卡片 -->
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-6">
