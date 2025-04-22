@@ -161,7 +161,7 @@ const handleCreateRoom = async () => {
           <label for="isAnonymous" class="text-sm text-gray-600">匿名模式 (不顯示投票者)</label>
         </div>
         <div class="mt-6">
-          <button @click="handleCreateRoom" :disabled="isLoading" class="w-full bg-red-gradient text-white py-3 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+          <button :disabled="isLoading || !roomName.trim() || !selectedPlace" @click="handleCreateRoom" class="w-full bg-red-gradient text-white py-3 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             {{ isLoading ? '創建中...' : '創建房間' }}
           </button>
         </div>
