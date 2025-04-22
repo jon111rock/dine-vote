@@ -2,6 +2,7 @@
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import NicknameEditor from '@/components/profile/NicknameEditor.vue'
 import LogoHeader from '@/components/common/LogoHeader.vue'
+import UserDropdown from '@/components/profile/UserDropdown.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 import { onMounted, ref, computed } from 'vue'
@@ -12,7 +13,7 @@ const nicknameStorage = useNicknameStorage()
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-const { user } = useAuth()
+const { user, logout, initialize } = useAuth()
 const shouldRedirect = ref(false)
 const redirectPath = ref('')
 
@@ -32,8 +33,24 @@ const useDisplayNameAsNickname = () => {
   }
 }
 
+// 處理登出
+const handleLogout = async () => {
+  try {
+    await logout()
+    toast.success('登出成功')
+    // 清除暱稱資料
+    nicknameStorage.clearNickname()
+    // 重定向至登入頁
+    router.push('/login')
+  } catch (error) {
+    toast.error('登出失敗：' + error.message)
+  }
+}
+
 // 檢查URL參數
 onMounted(() => {
+  initialize()
+  
   // 檢查是否有提示設置暱稱的標記
   const requireNickname = route.query.requireNickname === 'true'
   const roomCode = route.query.roomCode
@@ -96,10 +113,19 @@ const navigateToCreateRoom = () => {
 const navigateToJoinRoom = () => {
   router.push('/join-room')
 }
+
+const version = computed(() => {
+  return import.meta.env.VITE_APP_VERSION
+})
 </script>
 
 <template>
   <div class="flex flex-col min-h-screen w-full">
+    <!-- 用戶下拉菜單 -->
+    <div v-if="true" class="home-user-dropdown">
+      <UserDropdown :user="user" @logout="handleLogout" />
+    </div>
+
     <!-- 主要內容 -->
     <div class="flex justify-center items-center flex-grow py-8 px-4 sm:py-12 w-full">
       <div class="w-full max-w-md">
@@ -137,7 +163,7 @@ const navigateToJoinRoom = () => {
 
         <!-- 版本資訊 -->
         <div class="mt-6 text-center">
-          <p class="text-xs text-gray-500">版本 1.0.0</p>
+          <p class="text-xs text-gray-500">版本 {{ version }}</p>
         </div>
       </div>
     </div>
@@ -145,5 +171,11 @@ const navigateToJoinRoom = () => {
 </template>
 
 <style scoped>
-/* 只保留必要的樣式 */
+/* 用戶下拉菜單樣式 */
+.home-user-dropdown {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
 </style>

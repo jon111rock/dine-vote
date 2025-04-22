@@ -97,7 +97,7 @@ onUnmounted(() => {
     <!-- 用戶頭像按鈕 -->
     <button @click.stop="toggleDropdown" class="flex items-center space-x-2 focus:outline-none transition-all duration-200 rounded-full p-1">
       <!-- 如果有頭像則顯示頭像，否則顯示首字母頭像 -->
-      <div v-if="user.photoURL" class="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm">
+      <div v-if="user?.photoURL" class="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm">
         <img :src="user.photoURL" alt="用戶頭像" class="w-full h-full object-cover" />
       </div>
       <div v-else :class="[avatarBgColor, 'w-8 h-8 rounded-full flex items-center justify-center text-white font-medium shadow-sm border-2 border-white']">
@@ -115,7 +115,7 @@ onUnmounted(() => {
       <!-- 用戶資訊區塊 -->
       <div class="p-4 border-b border-gray-100">
         <p class="font-medium text-gray-800">{{ displayName }}</p>
-        <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
+        <p class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
       </div>
 
       <!-- 選單項目 -->

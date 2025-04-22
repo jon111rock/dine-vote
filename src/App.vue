@@ -1,7 +1,6 @@
 <script setup>
 import ToastContainer from '@/components/common/ToastContainer.vue'
 import ModalContainer from '@/components/common/ModalContainer.vue'
-import UserDropdown from '@/components/profile/UserDropdown.vue'
 import { useAuth } from '@/composables/auth/useAuth'
 import { useToast } from '@/composables/useToast'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
@@ -39,11 +38,6 @@ const handleLogout = async () => {
 
 <template>
   <div class="app-container">
-    <!-- 全局用戶下拉菜單 -->
-    <div v-if="user" class="global-user-dropdown">
-      <UserDropdown :user="user" @logout="handleLogout" />
-    </div>
-
     <main class="router-view-container">
       <router-view v-slot="{ Component }">
         <transition name="page" mode="out-in" appear>
@@ -76,14 +70,6 @@ const handleLogout = async () => {
 .page-leave-to {
   opacity: 0;
   transform: translateX(-20px);
-}
-
-/* 全局用戶下拉菜單樣式 */
-.global-user-dropdown {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 100;
 }
 
 /* 確保應用程序容器有適當的間距 */
