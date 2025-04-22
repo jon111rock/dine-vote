@@ -268,7 +268,7 @@ const handleImageError = (e) => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center min-h-screen pb-8">
+  <div class="flex flex-col items-center min-h-screen p-4 sm:p-2">
     <!-- 加載畫面 -->
     <div v-if="isLoading" class="w-full max-w-md mt-12 flex flex-col items-center justify-center">
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500 mb-4"></div>
