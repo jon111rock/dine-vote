@@ -418,7 +418,6 @@ const confirmStartVoting = async () => {
     // 如果是房主，更新房間狀態
     if (isOwner.value) {
       await updateRoomVotingStatus(roomId.value, 'active')
-      toast.success('已通知所有成員進入投票')
     }
 
     // 導航到投票頁面
