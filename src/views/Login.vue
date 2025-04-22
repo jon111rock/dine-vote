@@ -166,15 +166,33 @@ const handleRegister = async (e) => {
   isSubmitting.value = true;
 
   try {
+    // 註冊用戶
     await auth.register(
       registerForm.value.email,
       registerForm.value.password,
       registerForm.value.name
     );
 
-    // 成功註冊後自動切換到登入頁籤
-    switchTab('login');
-    toast.success('註冊成功！請登入您的帳號');
+    toast.success('註冊成功！正在為您登入...');
+
+    // 自動登入
+    try {
+      await auth.login(
+        registerForm.value.email,
+        registerForm.value.password
+      );
+
+      // 成功登入後重定向到首頁
+      const redirectPath = route.query.redirect || '/';
+      router.push(redirectPath);
+    } catch (loginError) {
+      console.error('自動登入失敗:', loginError);
+      // 自動登入失敗，切換到登入頁籤讓用戶手動登入
+      switchTab('login');
+      // 自動填寫登入表單的電子郵件
+      loginForm.value.email = registerForm.value.email;
+      toast.info('請使用剛註冊的帳號登入');
+    }
   } catch (error) {
     // 錯誤處理已經在 useAuth 中完成
     console.error('註冊失敗:', error);
