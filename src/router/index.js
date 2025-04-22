@@ -4,8 +4,8 @@ import CreateRoom from '@/views/CreateRoom.vue';
 import WaitingRoom from '@/views/WaitingRoom.vue';
 import VotingForm from '@/views/VotingForm.vue';
 import VotingResult from '@/views/VotingResult.vue';
-import ToastContainer from '@/components/common/ToastContainer.vue';
 import JoinRoom from '@/views/JoinRoom.vue';
+import Login from '@/views/Login.vue';
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage';
 import { STORAGE_KEYS } from '@/constants/storage-keys';
 
@@ -53,6 +53,11 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     redirect: '/'
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
   }
 ];
 
