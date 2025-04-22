@@ -255,7 +255,7 @@ const flavorOptions = [{
 </script>
 
 <template>
-  <div class="flex items-center flex-col">
+  <div class="flex items-center flex-col p-2">
     <div class="w-full max-w-md bg-gray-50 rounded-lg p-6 shadow-lg mt-4 mb-4">
       <div class="flex justify-between items-center gap-2">
         <h1 class="text-xl font-bold">晚餐吃什麼 ?</h1>
