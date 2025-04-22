@@ -549,7 +549,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex items-center h-screen flex-col">
+  <div class="flex items-center h-screen flex-col p-4 sm:p-2">
     <div class="w-full max-w-md">
       <NavigationBack text="離開房間" :is-custom-action="true" @custom-action="handleLeaveRoom" />
 
