@@ -41,8 +41,7 @@ const registerForm = ref({
   name: '',
   email: '',
   password: '',
-  confirmPassword: '',
-  agreeTerms: false
+  confirmPassword: ''
 });
 
 // 密碼強度
@@ -126,12 +125,6 @@ const validateRegisterForm = () => {
     isValid = false;
   } else if (registerForm.value.password !== registerForm.value.confirmPassword) {
     errors.confirmPassword = '兩次輸入的密碼不一致';
-    isValid = false;
-  }
-
-  // 驗證服務條款
-  if (!registerForm.value.agreeTerms) {
-    toast.error('請同意服務條款和隱私政策');
     isValid = false;
   }
 
@@ -323,15 +316,6 @@ const updatePasswordStrength = () => {
                 <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">確認密碼</label>
                 <input v-model="registerForm.confirmPassword" type="password" id="confirm-password" autocomplete="new-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" :class="{ 'border-red-500': formErrors.register.confirmPassword }" placeholder="請再次輸入密碼">
                 <p v-if="formErrors.register.confirmPassword" class="mt-1 text-sm text-red-600">{{ formErrors.register.confirmPassword }}</p>
-              </div>
-
-              <div class="mb-6 form-field animate-field" style="animation-delay: 0.2s;">
-                <label class="flex items-start">
-                  <input v-model="registerForm.agreeTerms" type="checkbox" class="rounded text-indigo-600 h-4 w-4 mt-1">
-                  <span class="ml-2 text-sm text-gray-600">
-                    我已閱讀並同意 <a href="#" class="text-indigo-600 hover:text-indigo-800">服務條款</a> 和 <a href="#" class="text-indigo-600 hover:text-indigo-800">隱私政策</a>
-                  </span>
-                </label>
               </div>
 
               <button type="submit" class="w-full text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:-translate-y-1 hover:shadow-lg form-field animate-field" style="animation-delay: 0.25s;" :disabled="isSubmitting">
