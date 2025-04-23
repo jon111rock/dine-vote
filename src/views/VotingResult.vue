@@ -5,11 +5,13 @@ import { useToast } from '@/composables/useToast';
 import { getRoomVotes, getRecommendationResults } from '@/firebase/rooms';
 import axios from 'axios';
 import { useRoomStore } from '@/stores/room';
+import { useRecommendations } from '@/composables/useRecommendations';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { roomStore } = useRoomStore();
+const { getRecommendations } = useRecommendations();
 
 // 狀態
 const isLoading = ref(true);
@@ -115,7 +117,7 @@ const fetchRecommendations = async (roomData) => {
 const checkForRecommendations = async () => {
   try {
     console.log('檢查是否有推薦結果...');
-    const results = await getRecommendationResults(roomId.value);
+    const results = await getRecommendations(roomId.value);
 
     if (results) {
       console.log('已獲取推薦結果:', results);
