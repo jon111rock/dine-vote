@@ -17,12 +17,6 @@ const { user, logout, initialize } = useAuth()
 const shouldRedirect = ref(false)
 const redirectPath = ref('')
 
-// 計算屬性：是否應該提示用戶使用顯示名稱
-const shouldSuggestDisplayNameAsNickname = computed(() => {
-  if (!user.value || !user.value.displayName) return false;
-  return nicknameStorage.shouldUpdateFromDisplayName(user.value.displayName);
-})
-
 // 處理登出
 const handleLogout = async () => {
   try {
