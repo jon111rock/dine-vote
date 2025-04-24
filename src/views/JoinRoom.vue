@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { useUserStore } from '@/stores'
@@ -7,6 +7,7 @@ import { getRoomByCode, joinRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 import { useRoomStore } from '@/stores/room'
+import { useAuth } from '@/composables/auth/useAuth'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,7 +15,7 @@ const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 const roomStore = useRoomStore()
 const userStore = useUserStore()
-
+const auth = useAuth()
 // 接收從路由傳遞的props
 const props = defineProps({
   roomCode: {
@@ -23,10 +24,14 @@ const props = defineProps({
   }
 })
 
-const roomCode = ref(props.roomCode || '')
+const roomCode = ref('')
 const isLoading = ref(false)
-const autoJoin = ref(false) // 標記是否為自動加入模式
-const hasTriedAutoJoin = ref(false) // 標記是否已嘗試過自動加入
+const autoJoin = ref(false)
+const hasTriedAutoJoin = ref(false)
+
+const isButtonDisabled = computed(() => {
+  return roomCode.value.length !== 6 || isLoading.value
+})
 
 // 監聽暱稱變化，支持動態暱稱設置後的重試
 watch(() => nicknameStorage.hasNickname(), (hasNickname) => {
@@ -39,66 +44,13 @@ watch(() => nicknameStorage.hasNickname(), (hasNickname) => {
   }
 })
 
-// 如果有 URL 參數，自動填入房間代碼
-onMounted(() => {
-  // 優先使用路由props中的roomCode
-  if (props.roomCode) {
-    roomCode.value = props.roomCode
-    autoJoin.value = true
-  }
-  // 兼容舊版的code參數
-  else if (route.query.code) {
-    roomCode.value = route.query.code
-    autoJoin.value = true
-  }
-  // 兼容URL參數
-  else if (route.query.roomCode) {
-    roomCode.value = route.query.roomCode
-    autoJoin.value = true
-  }
-
-  // 如果自動填入了有效長度的代碼，且用戶已設置暱稱，則自動觸發加入按鈕
-  if (autoJoin.value && roomCode.value.length === 6 && nicknameStorage.hasNickname()) {
-    hasTriedAutoJoin.value = true
-    // 延遲300ms後觸發，給頁面時間渲染
-    setTimeout(() => {
-      handleJoinRoom()
-    }, 300)
-  }
-})
-
-// 驗證房間是否存在
-const validateRoom = async () => {
-  if (!roomCode.value.trim()) {
-    toast.error('請輸入房間代碼')
-    return false
-  }
-
-  try {
-    const room = await getRoomByCode(roomCode.value.trim().toUpperCase())
-    if (!room) {
-      toast.error('找不到此房間')
-      return false
-    }
-    if (room.status !== 'active') {
-      toast.error('此房間已結束')
-      return false
-    }
-    return room
-  } catch (err) {
-    console.error('驗證房間失敗:', err)
-    toast.error('驗證房間失敗')
-    return false
-  }
-}
-
-// 處理加入房間
+// 處理加入房間邏輯
 const handleJoinRoom = async () => {
   if (!nicknameStorage.hasNickname()) {
     toast.error('請先設定暱稱')
     return
   }
-
+  
   if (!userStore.user) {
     toast.error('請先登入')
     router.push('/login')
@@ -143,6 +95,81 @@ const handleJoinRoom = async () => {
   }
 }
 
+// 初始化房間代碼並嘗試自動加入
+const initializeRoomCodeAndAutoJoin = () => {
+  // 優先使用路由props中的roomCode
+  if (props.roomCode) {
+    roomCode.value = props.roomCode
+    autoJoin.value = true
+  }
+  // 兼容舊版的code參數
+  else if (route.query.code) {
+    roomCode.value = String(route.query.code) // 確保是字串
+    autoJoin.value = true
+  }
+  // 兼容URL參數
+  else if (route.query.roomCode) {
+    roomCode.value = String(route.query.roomCode) // 確保是字串
+    autoJoin.value = true
+  }
+
+  // 如果自動填入了有效長度的代碼，且用戶已設置暱稱，則自動觸發加入按鈕
+  if (autoJoin.value && roomCode.value.length === 6 && nicknameStorage.hasNickname()) {
+    hasTriedAutoJoin.value = true
+    // 延遲300ms後觸發，給頁面時間渲染
+    setTimeout(() => {
+      handleJoinRoom()
+    }, 300)
+  }
+}
+
+const handleIfUserStoreIsEmpty = async () => {
+  if (!userStore.user) {
+    await auth.initialize()
+    userStore.setUser(auth.user.value)
+  }
+}
+
+onMounted(async () => {
+
+  // 檢查用戶是否已登入
+  handleIfUserStoreIsEmpty();
+
+  // 檢查用戶是否已設置暱稱
+  if (!nicknameStorage.hasNickname()) {
+    toast.warning('請先在首頁設定您的暱稱！')
+    router.push('/')
+    return
+  }
+
+  initializeRoomCodeAndAutoJoin()
+})
+
+// 驗證房間是否存在
+const validateRoom = async () => {
+  if (!roomCode.value.trim()) {
+    toast.error('請輸入房間代碼')
+    return false
+  }
+
+  try {
+    const room = await getRoomByCode(roomCode.value.trim().toUpperCase())
+    if (!room) {
+      toast.error('找不到此房間')
+      return false
+    }
+    if (room.status !== 'active') {
+      toast.error('此房間已結束')
+      return false
+    }
+    return room
+  } catch (err) {
+    console.error('驗證房間失敗:', err)
+    toast.error('驗證房間失敗')
+    return false
+  }
+}
+
 // 處理輸入變化
 const handleInput = (e) => {
   // 只允許輸入字母和數字
@@ -176,7 +203,7 @@ const handleKeydown = (e) => {
         </div>
 
         <div class="mt-6">
-          <button @click="handleJoinRoom" :disabled="isLoading || roomCode.length !== 6" class="cursor-pointer w-full bg-red-gradient text-white font-medium py-3 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+          <button @click="handleJoinRoom" :disabled="isButtonDisabled" class="cursor-pointer w-full bg-red-gradient text-white font-medium py-3 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
             {{ isLoading ? '處理中...' : '加入房間' }}
           </button>
         </div>
