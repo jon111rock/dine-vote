@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
 import { useAuth } from '@/composables/auth/useAuth'
@@ -21,9 +21,6 @@ const locationInput = ref(null)
 const expiryTime = ref('30')
 const isAnonymous = ref(false)
 const isLoading = ref(false)
-
-// 新增計算屬性，合併 Auth 狀態和創建房間狀態
-const isProcessing = computed(() => isLoading.value || !auth.isAuthReady.value)
 
 // 地址自動完成
 const {
@@ -188,8 +185,8 @@ const handleCreateRoom = async () => {
           <label for="isAnonymous" class="text-sm text-gray-600">匿名模式 (不顯示投票者)</label>
         </div>
         <div class="mt-6">
-          <button :disabled="isProcessing || !roomName.trim() || !selectedPlace" @click="handleCreateRoom" class="w-full bg-red-gradient text-white py-3 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ isProcessing ? '處理中...' : '創建房間' }}
+          <button :disabled="isLoading || !roomName.trim() || !selectedPlace" @click="handleCreateRoom" class="w-full bg-red-gradient text-white py-3 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ isLoading ? '創建中...' : '創建房間' }}
           </button>
         </div>
       </div>
