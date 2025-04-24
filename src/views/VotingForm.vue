@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
+import { useUserStore } from '@/stores';
 import { submitVote, watchRoomVotes, getRoomById } from '@/firebase/rooms';
 import OptionGroup from '@/components/voting/OptionGroup.vue';
 import BudgetSlider from '@/components/voting/BudgetSlider.vue';
@@ -11,6 +12,7 @@ import CommentInput from '@/components/voting/CommentInput.vue';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const userStore = useUserStore();
 
 // 表單資料
 const selectedFood = ref(null);
@@ -23,7 +25,6 @@ const isLoading = ref(false);
 const isSubmitted = ref(false);
 const error = ref(null);
 const roomId = ref('');
-const participantId = ref('');
 const unsubscribe = ref(null);
 const roomData = ref(null);
 const votingStatus = ref({
@@ -68,8 +69,8 @@ const handleSubmit = async () => {
     return;
   }
 
-  if (!roomId.value || !participantId.value) {
-    toast.error('房間資訊不完整，請返回等待頁面');
+  if (!roomId.value || !userStore.user?.uid) {
+    toast.error('房間資訊不完整或未登入，請返回等待頁面');
     return;
   }
 
@@ -78,7 +79,7 @@ const handleSubmit = async () => {
 
   try {
     const voteData = getFormData();
-    await submitVote(roomId.value, participantId.value, voteData);
+    await submitVote(roomId.value, userStore.user.uid, voteData);
 
     isSubmitted.value = true;
     toast.success('投票成功！等待其他人完成投票...');
@@ -105,7 +106,7 @@ const startWatchingVotes = () => {
     votingStatus.value = data;
 
     // 檢查是否當前用戶已投票
-    const currentUserVote = data.votes.find(v => v.participantId === participantId.value);
+    const currentUserVote = data.votes.find(v => v.userUid === userStore.user?.uid);
     if (currentUserVote && currentUserVote.voteStatus === 'completed') {
       isSubmitted.value = true;
     }
@@ -124,28 +125,30 @@ const startWatchingVotes = () => {
 onMounted(() => {
   // 從URL獲取參數
   const urlRoomId = route.query.roomId;
-  const urlParticipantId = route.query.participantId;
 
-  if (!urlRoomId || !urlParticipantId) {
+  if (!urlRoomId) {
     // 嘗試從localStorage獲取
     const savedRoomId = localStorage.getItem('currentRoomId');
-    const savedParticipantId = localStorage.getItem('currentParticipantId');
 
-    if (!savedRoomId || !savedParticipantId) {
+    if (!savedRoomId) {
       toast.error('缺少必要參數，無法進行投票');
       router.push('/');
       return;
     }
 
     roomId.value = savedRoomId;
-    participantId.value = savedParticipantId;
   } else {
     roomId.value = urlRoomId;
-    participantId.value = urlParticipantId;
 
     // 保存到localStorage以便在頁面刷新時恢復
     localStorage.setItem('currentRoomId', urlRoomId);
-    localStorage.setItem('currentParticipantId', urlParticipantId);
+  }
+
+  // 檢查用戶是否已登入
+  if (!userStore.user) {
+    toast.error('請先登入');
+    router.push('/login');
+    return;
   }
 
   // 開始監聽投票狀態
@@ -171,12 +174,12 @@ onMounted(() => {
   }, 1000);
 });
 
-// 獲取房間資料
 onMounted(async () => {
   await getRoomData();
 });
 
 const roomName = computed(() => {
+
   return roomData?.value?.name || '無法取得房間名稱'
 });
 

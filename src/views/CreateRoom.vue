@@ -2,17 +2,21 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
+import { useAuth } from '@/composables/auth/useAuth'
 import { createRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 import useGoogleMapsAutocomplete from '@/composables/maps/useGoogleMapsAutocomplete'
 import { useCurrentLocation } from '@/composables/maps/useCurrentLocation'
 import { useRoomStore } from '@/stores/room'
+import { useUserStore } from '@/stores'
 
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 const roomStore = useRoomStore()
+const auth = useAuth()
+const userStore = useUserStore()
 
 const roomName = ref('')
 const locationInput = ref(null)
@@ -72,13 +76,20 @@ const handleCreateRoom = async () => {
     return
   }
 
+  if (!userStore.user) {
+    toast.error('請先登入')
+    router.push('/login')
+    return
+  }
+
   try {
     isLoading.value = true
-    const userId = nicknameStorage.nickname.value
+    const displayName = nicknameStorage.nickname.value
 
     const roomData = {
       name: roomName.value.trim(),
-      userId
+      userUid: userStore.user.uid,
+      displayName: displayName
     }
 
     // 加入地點資訊（如果有選擇地點）
@@ -98,13 +109,13 @@ const handleCreateRoom = async () => {
     roomData.expiryTime = parseInt(expiryTime.value)
     roomData.isAnonymous = isAnonymous.value
 
-    
+
     const room = await createRoom(roomData)
-    
+
     roomStore.setRoomStore({
       roomName: roomName.value.trim(),
       roomId: room.id,
-      roomOwner: userId
+      roomOwner: userStore.user.uid
     })
     router.push(`/waiting-room?roomId=${room.id}`)
   } catch (err) {

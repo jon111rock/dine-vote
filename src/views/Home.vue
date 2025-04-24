@@ -5,28 +5,26 @@ import LogoHeader from '@/components/common/LogoHeader.vue'
 import UserDropdown from '@/components/profile/UserDropdown.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from '@/composables/useToast'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { STORAGE_KEYS } from '@/constants/storage-keys'
 import { useAuth } from '@/composables/auth/useAuth'
+import { useUserStore } from '@/stores'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '@/firebase'
 
 const nicknameStorage = useNicknameStorage()
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-const { user, logout, initialize } = useAuth()
+const { user, loading, error, initialize } = useAuth()
+const userStore = useUserStore()
 const shouldRedirect = ref(false)
 const redirectPath = ref('')
-
-// 計算屬性：是否應該提示用戶使用顯示名稱
-const shouldSuggestDisplayNameAsNickname = computed(() => {
-  if (!user.value || !user.value.displayName) return false;
-  return nicknameStorage.shouldUpdateFromDisplayName(user.value.displayName);
-})
 
 // 處理登出
 const handleLogout = async () => {
   try {
-    await logout()
+    await userStore.logout()
     toast.success('登出成功')
     // 清除暱稱資料
     nicknameStorage.clearNickname()
@@ -37,9 +35,21 @@ const handleLogout = async () => {
   }
 }
 
+// 設置 Firebase Auth 監聽器，並將用戶信息同步到 store
+const setupAuthListener = () => {
+  return onAuthStateChanged(auth, (currentUser) => {
+    console.log('[Home] Auth state changed:', currentUser?.uid ? `User ${currentUser.uid}` : 'No user')
+    // 更新 userStore
+    userStore.setUser(currentUser)
+  })
+}
+
 // 檢查URL參數
 onMounted(() => {
   initialize()
+
+  // 設置 Firebase Auth 監聽器，將用戶信息同步到 store
+  const unsubscribe = setupAuthListener()
 
   // 檢查是否有提示設置暱稱的標記
   const requireNickname = route.query.requireNickname === 'true'
@@ -88,7 +98,7 @@ const version = computed(() => {
   <div class="flex flex-col min-h-screen w-full">
     <!-- 用戶下拉菜單 -->
     <div v-if="true" class="home-user-dropdown">
-      <UserDropdown :user="user" @logout="handleLogout" />
+      <UserDropdown :user="userStore.user" @logout="handleLogout" />
     </div>
 
     <!-- 主要內容 -->

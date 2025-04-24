@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
+import { useUserStore } from '@/stores';
 import { getRoomVotes, getRecommendationResults, getRoomById } from '@/firebase/rooms';
 import axios from 'axios';
 import { useRecommendations } from '@/composables/useRecommendations';
@@ -9,6 +10,7 @@ import { useRecommendations } from '@/composables/useRecommendations';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const userStore = useUserStore();
 const { getRecommendations } = useRecommendations();
 
 // 狀態
@@ -58,12 +60,17 @@ const formatVotesForApi = (roomData) => {
   return roomData.votes
     .filter(vote => vote.voteData) // 只包含有投票資料的參與者
     .map(vote => ({
-      participantId: vote.participantId,
-      participantName: vote.userId || '匿名用戶',
+      // 將 userUid 映射為 API 所需的 participantId
+      participantId: vote.userUid,
+      // 使用顯示名稱或預設為匿名用戶
+      participantName: vote.displayName || '匿名用戶',
+      // 組合食物類型和口味，或取其中之一
       foodType: vote.voteData.flavor && vote.voteData.food
         ? `${vote.voteData.flavor}-${vote.voteData.food}`
         : (vote.voteData.flavor || vote.voteData.food || '未指定'),
+      // 預算，預設為500
       budget: vote.voteData.budget || 500,
+      // 備註
       comments: vote.voteData.comment || ''
     }));
 };
@@ -178,10 +185,9 @@ onMounted(async () => {
 
   await getRoomData();
 
-  // 獲取參與者ID
-  const savedParticipantId = localStorage.getItem('currentParticipantId');
-  if (savedParticipantId) {
-    participantId.value = savedParticipantId;
+  // 設置參與者ID
+  if (userStore.user) {
+    participantId.value = userStore.user.uid;
   }
 
   // 獲取投票資料
@@ -192,8 +198,8 @@ onMounted(async () => {
     votesData.value = roomData.votes || [];
 
     // 確定當前用戶是否為房主
-    if (participantId.value && roomData.votes) {
-      const currentUserData = roomData.votes.find(v => v.participantId === participantId.value);
+    if (userStore.user && roomData.votes) {
+      const currentUserData = roomData.votes.find(v => v.userUid === userStore.user.uid);
       isRoomOwner.value = currentUserData?.isOwner === true;
     }
 

@@ -52,27 +52,24 @@ export const createRoom = async (roomData) => {
     const roomsRef = collection(db, 'rooms')
     const roomCode = await generateUniqueRoomCode()
     
-    if (!roomData.userId) {
-      throw new Error('缺少使用者ID')
+    if (!roomData.userUid) {
+      throw new Error('缺少使用者UID')
     }
 
-    // 生成參與者 ID
-    const participantId = crypto.randomUUID()
-    
     const newRoom = {
       ...roomData,
       roomCode,
       createdAt: serverTimestamp(),
       status: 'active',
       participants: {
-        [participantId]: {
-          userId: roomData.userId,
+        [roomData.userUid]: {
+          displayName: roomData.displayName || '',
           joinedAt: serverTimestamp(),
           isOwner: true,
           voteStatus: 'pending'
         }
       },
-      ownerId: roomData.userId
+      ownerId: roomData.userUid
     }
     
     const docRef = await addDoc(roomsRef, newRoom)
@@ -148,7 +145,7 @@ export const getRoomByCode = async (roomCode) => {
 }
 
 // 加入房間
-export const joinRoom = async (roomId, userId, sessionId) => {
+export const joinRoom = async (roomId, userUid, displayName) => {
   try {
     const roomRef = doc(db, 'rooms', roomId)
     const roomDoc = await getDoc(roomRef)
@@ -164,43 +161,24 @@ export const joinRoom = async (roomId, userId, sessionId) => {
 
     // 檢查使用者是否已在房間中
     const participants = roomData.participants || {}
-    const existingParticipant = Object.entries(participants).find(
-      ([_, participant]) => participant.userId === userId && participant.sessionId === sessionId
-    )
-
-    // 如果已存在相同會話ID的參與者，直接返回現有的參與者ID
-    if (existingParticipant) {
-      return { participantId: existingParticipant[0], isExisting: true }
-    }
-
-    // 檢查是否有其他相同使用者（同暱稱）的參與者
-    const sameUserParticipants = Object.entries(participants).filter(
-      ([_, participant]) => participant.userId === userId
-    )
-
-    // 如果有其他相同使用者的參與者，但會話ID不同，需要移除舊的參與者
-    const updates = {}
-    if (sameUserParticipants.length > 0) {
-      sameUserParticipants.forEach(([pid]) => {
-        updates[`participants.${pid}`] = deleteField()
-      })
-    }
-
-    // 生成參與者 ID
-    const participantId = crypto.randomUUID()
     
-    // 更新參與者列表，包含會話ID
-    updates[`participants.${participantId}`] = {
-      userId,
-      sessionId, // 儲存會話ID
+    // 如果已存在此使用者，直接返回
+    if (participants[userUid]) {
+      return { isExisting: true }
+    }
+
+    // 更新參與者列表
+    const updates = {}
+    updates[`participants.${userUid}`] = {
+      displayName: displayName || '',
       joinedAt: serverTimestamp(),
-      isOwner: roomData.ownerId === userId,
+      isOwner: roomData.ownerId === userUid,
       voteStatus: 'pending'
     }
     
     await updateDoc(roomRef, updates)
     
-    return { participantId, isExisting: false }
+    return { isExisting: false }
   } catch (error) {
     console.error('加入房間失敗:', error)
     throw error
@@ -208,7 +186,7 @@ export const joinRoom = async (roomId, userId, sessionId) => {
 }
 
 // 離開房間
-export const leaveRoom = async (roomId, userId, sessionId) => {
+export const leaveRoom = async (roomId, userUid) => {
   try {
     const roomRef = doc(db, 'rooms', roomId)
     const roomDoc = await getDoc(roomRef)
@@ -223,39 +201,26 @@ export const leaveRoom = async (roomId, userId, sessionId) => {
     }
 
     // 如果是房主離開，刪除整個房間
-    if (roomData.ownerId === userId) {
+    if (roomData.ownerId === userUid) {
       console.log('房主離開，刪除房間')
       await deleteDoc(roomRef)
       return { isOwner: true }
     }
 
-    // 如果不是房主，找到並移除該使用者的所有參與者記錄
+    // 如果不是房主，移除該使用者的參與者記錄
     const participants = roomData.participants || {}
     
-    // 如果提供了 sessionId，只移除特定會話的參與者
-    const participantIds = Object.entries(participants)
-      .filter(([_, participant]) => {
-        if (sessionId) {
-          return participant.userId === userId && participant.sessionId === sessionId
-        }
-        return participant.userId === userId
-      })
-      .map(([participantId]) => participantId)
-
-    // 刪除所有符合的參與者
-    const updates = {}
-    participantIds.forEach(pid => {
-      updates[`participants.${pid}`] = deleteField()
-    })
-
-    if (Object.keys(updates).length > 0) {
+    // 檢查使用者是否在房間中
+    if (participants[userUid]) {
+      const updates = {}
+      updates[`participants.${userUid}`] = deleteField()
       await updateDoc(roomRef, updates)
     }
-
+    
     return { isOwner: false }
-  } catch (err) {
-    console.error('離開房間失敗:', err)
-    throw err
+  } catch (error) {
+    console.error('離開房間失敗:', error)
+    throw error
   }
 }
 
@@ -277,7 +242,7 @@ export const watchRoom = (roomId, onUpdate) => {
 }
 
 // 提交投票
-export const submitVote = async (roomId, participantId, voteData) => {
+export const submitVote = async (roomId, userUid, voteData) => {
   try {
     const roomRef = doc(db, 'rooms', roomId)
     const roomDoc = await getDoc(roomRef)
@@ -292,15 +257,15 @@ export const submitVote = async (roomId, participantId, voteData) => {
     }
     
     // 檢查參與者是否存在
-    if (!roomData.participants || !roomData.participants[participantId]) {
+    if (!roomData.participants || !roomData.participants[userUid]) {
       throw new Error('參與者不存在於此房間')
     }
     
     // 更新參與者的投票資料
     await updateDoc(roomRef, {
-      [`participants.${participantId}.voteData`]: voteData,
-      [`participants.${participantId}.votedAt`]: serverTimestamp(),
-      [`participants.${participantId}.voteStatus`]: 'completed'
+      [`participants.${userUid}.voteData`]: voteData,
+      [`participants.${userUid}.votedAt`]: serverTimestamp(),
+      [`participants.${userUid}.voteStatus`]: 'completed'
     })
     
     return true
@@ -322,14 +287,14 @@ export const getRoomVotes = async (roomId) => {
     
     const roomData = roomDoc.data()
     if (!roomData.participants) {
-      return []
+      return { votes: [], addressData: {} }
     }
     
     // 整理投票資料
-    const votes = Object.entries(roomData.participants).map(([pid, participant]) => {
+    const votes = Object.entries(roomData.participants).map(([userUid, participant]) => {
       return {
-        participantId: pid,
-        userId: participant.userId,
+        userUid: userUid,
+        displayName: participant.displayName || '',
         voteData: participant.voteData || null,
         votedAt: participant.votedAt || null,
         voteStatus: participant.voteStatus || 'pending',
@@ -340,7 +305,7 @@ export const getRoomVotes = async (roomId) => {
     // 地址資料
     const addressData = roomData.location || {}
 
-    return {votes, addressData}
+    return { votes, addressData }
   } catch (error) {
     console.error('獲取投票資料失敗:', error)
     throw error
@@ -381,10 +346,10 @@ export const watchRoomVotes = (roomId, onUpdate) => {
     const participants = roomData.participants || {}
     
     // 整理投票資料
-    const votes = Object.entries(participants).map(([pid, participant]) => {
+    const votes = Object.entries(participants).map(([userUid, participant]) => {
       return {
-        participantId: pid,
-        userId: participant.userId,
+        userUid: userUid,
+        displayName: participant.displayName || '',
         voteData: participant.voteData || null,
         votedAt: participant.votedAt || null,
         voteStatus: participant.voteStatus || 'pending',

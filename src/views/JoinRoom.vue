@@ -1,18 +1,21 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
+import { useUserStore } from '@/stores'
 import { getRoomByCode, joinRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
 import { useRoomStore } from '@/stores/room'
+import { useAuth } from '@/composables/auth/useAuth'
 
 const route = useRoute()
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 const roomStore = useRoomStore()
-
+const userStore = useUserStore()
+const auth = useAuth()
 // 接收從路由傳遞的props
 const props = defineProps({
   roomCode: {
@@ -21,27 +24,13 @@ const props = defineProps({
   }
 })
 
-const roomCode = ref(props.roomCode || '')
+const roomCode = ref('')
 const isLoading = ref(false)
-const autoJoin = ref(false) // 標記是否為自動加入模式
-const hasTriedAutoJoin = ref(false) // 標記是否已嘗試過自動加入
-const sessionId = ref('')
+const autoJoin = ref(false)
+const hasTriedAutoJoin = ref(false)
 
-// 生成或獲取會話ID
-const getOrCreateSessionId = () => {
-  let existingId = localStorage.getItem('dineVoteSessionId')
-
-  if (!existingId) {
-    existingId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
-    localStorage.setItem('dineVoteSessionId', existingId)
-  }
-
-  return existingId
-}
-
-// 初始化會話ID
-onMounted(() => {
-  sessionId.value = getOrCreateSessionId()
+const isButtonDisabled = computed(() => {
+  return roomCode.value.length !== 6 || isLoading.value
 })
 
 // 監聽暱稱變化，支持動態暱稱設置後的重試
@@ -55,8 +44,59 @@ watch(() => nicknameStorage.hasNickname(), (hasNickname) => {
   }
 })
 
-// 如果有 URL 參數，自動填入房間代碼
-onMounted(() => {
+// 處理加入房間邏輯
+const handleJoinRoom = async () => {
+  if (!nicknameStorage.hasNickname()) {
+    toast.error('請先設定暱稱')
+    return
+  }
+  
+  if (!userStore.user) {
+    toast.error('請先登入')
+    router.push('/login')
+    return
+  }
+
+  try {
+    isLoading.value = true
+
+    // 驗證房間
+    const room = await validateRoom()
+    if (!room) {
+      return
+    }
+
+    roomStore.setRoomStore({
+      roomName: room.name,
+      roomId: room.id,
+      roomOwner: room.ownerId
+    })
+
+    // 加入房間，使用用戶UID和暱稱
+    const displayName = nicknameStorage.nickname.value
+    const result = await joinRoom(room.id, userStore.user.uid, displayName)
+
+    if (result.isExisting) {
+      toast.info('使用已有的房間身份')
+    } else {
+      toast.success('加入房間成功')
+    }
+
+    // 儲存當前房間ID
+    localStorage.setItem('currentRoomId', room.id)
+
+    // 跳轉到等待房間
+    router.push(`/waiting-room?roomId=${room.id}`)
+  } catch (err) {
+    console.error('加入房間失敗:', err)
+    toast.error(err.message || '加入房間失敗')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 初始化房間代碼並嘗試自動加入
+const initializeRoomCodeAndAutoJoin = () => {
   // 優先使用路由props中的roomCode
   if (props.roomCode) {
     roomCode.value = props.roomCode
@@ -64,12 +104,12 @@ onMounted(() => {
   }
   // 兼容舊版的code參數
   else if (route.query.code) {
-    roomCode.value = route.query.code
+    roomCode.value = String(route.query.code) // 確保是字串
     autoJoin.value = true
   }
   // 兼容URL參數
   else if (route.query.roomCode) {
-    roomCode.value = route.query.roomCode
+    roomCode.value = String(route.query.roomCode) // 確保是字串
     autoJoin.value = true
   }
 
@@ -81,6 +121,28 @@ onMounted(() => {
       handleJoinRoom()
     }, 300)
   }
+}
+
+const handleIfUserStoreIsEmpty = async () => {
+  if (!userStore.user) {
+    await auth.initialize()
+    userStore.setUser(auth.user.value)
+  }
+}
+
+onMounted(async () => {
+
+  // 檢查用戶是否已登入
+  handleIfUserStoreIsEmpty();
+
+  // 檢查用戶是否已設置暱稱
+  if (!nicknameStorage.hasNickname()) {
+    toast.warning('請先在首頁設定您的暱稱！')
+    router.push('/')
+    return
+  }
+
+  initializeRoomCodeAndAutoJoin()
 })
 
 // 驗證房間是否存在
@@ -105,51 +167,6 @@ const validateRoom = async () => {
     console.error('驗證房間失敗:', err)
     toast.error('驗證房間失敗')
     return false
-  }
-}
-
-// 處理加入房間
-const handleJoinRoom = async () => {
-  if (!nicknameStorage.hasNickname()) {
-    toast.error('請先設定暱稱')
-    return
-  }
-
-  try {
-    isLoading.value = true
-
-    // 驗證房間
-    const room = await validateRoom()
-    roomStore.setRoomStore({
-      roomName: room.name,
-      roomId: room.id,
-      roomOwner: room.owner
-    })
-    
-    if (!room) {
-      return
-    }
-
-    // 加入房間，傳遞會話ID
-    const userId = nicknameStorage.nickname.value
-    const result = await joinRoom(room.id, userId, sessionId.value)
-
-    if (result.isExisting) {
-      toast.info('使用已有的房間身份')
-    } else {
-      toast.success('加入房間成功')
-    }
-
-    // 將房間ID註冊為活躍分頁
-    localStorage.setItem(`dineVoteActiveRoom_${room.id}`, sessionId.value)
-
-    // 跳轉到等待房間
-    router.push(`/waiting-room?roomId=${room.id}`)
-  } catch (err) {
-    console.error('加入房間失敗:', err)
-    toast.error(err.message || '加入房間失敗')
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -186,7 +203,7 @@ const handleKeydown = (e) => {
         </div>
 
         <div class="mt-6">
-          <button @click="handleJoinRoom" :disabled="isLoading || roomCode.length !== 6" class="cursor-pointer w-full bg-red-gradient text-white font-medium py-3 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+          <button @click="handleJoinRoom" :disabled="isButtonDisabled" class="cursor-pointer w-full bg-red-gradient text-white font-medium py-3 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
             {{ isLoading ? '處理中...' : '加入房間' }}
           </button>
         </div>

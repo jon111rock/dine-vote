@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, readonly, onUnmounted } from 'vue';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -33,6 +33,7 @@ export function useAuth() {
         user.value = null;
       }
     }, (err) => {
+      console.error('[useAuth] onAuthStateChanged error:', err);
       loading.value = false;
       error.value = err.message;
       toast.error(`驗證狀態監聽錯誤: ${err.message}`);
@@ -156,9 +157,9 @@ export function useAuth() {
   };
   
   return {
-    user,
-    loading,
-    error,
+    user: readonly(user),
+    loading: readonly(loading),
+    error: readonly(error),
     isAuthenticated,
     initialize,
     register,
