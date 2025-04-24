@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
 import { useUserStore } from '@/stores';
-import { getRoomVotes, getRecommendationResults, getRoomById } from '@/firebase/rooms';
+import { getRoomVotes, getRecommendationResults, getRoomById, updateRoomVotingStatus } from '@/firebase/rooms';
 import axios from 'axios';
 import { useRecommendations } from '@/composables/useRecommendations';
 
@@ -104,6 +104,21 @@ const fetchRecommendations = async (roomData) => {
     if (response.data && response.data.success) {
       recommendations.value = response.data.data.recommendations || [];
       analysisStats.value = response.data.data.analysisStats || null;
+
+      // ***** 新增：更新房間投票狀態為 completed *****
+      try {
+        await updateRoomVotingStatus(roomId.value, 'completed');
+        console.log(`房間 ${roomId.value} 的投票狀態已更新為 completed`);
+        // 可選：更新本地 roomData 的狀態（如果 VotingResult 頁面依賴此狀態）
+        if (roomData.value) {
+          roomData.value.votingStatus = 'completed';
+        }
+      } catch (updateError) {
+        console.error(`更新房間 ${roomId.value} 投票狀態失敗:`, updateError);
+        // 即使更新失敗，也繼續顯示結果，但記錄錯誤
+        toast.error('更新房間狀態時出錯，但已獲取結果');
+      }
+      // *********************************************
 
     } else {
       throw new Error(response.data?.error?.message || '獲取推薦失敗');
