@@ -2,15 +2,13 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { getRoomVotes, getRecommendationResults } from '@/firebase/rooms';
+import { getRoomVotes, getRecommendationResults, getRoomById } from '@/firebase/rooms';
 import axios from 'axios';
-import { useRoomStore } from '@/stores/room';
 import { useRecommendations } from '@/composables/useRecommendations';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const { roomStore } = useRoomStore();
 const { getRecommendations } = useRecommendations();
 
 // 狀態
@@ -19,6 +17,7 @@ const isApiLoading = ref(false);
 const isWaitingForRecommendations = ref(false);
 const error = ref(null);
 const roomId = ref('');
+const roomData = ref(null);
 const participantId = ref('');
 const isRoomOwner = ref(false);
 const votesData = ref([]);
@@ -159,6 +158,12 @@ const waitForRecommendations = async () => {
   }, 60000);
 };
 
+// 獲取房間資料
+const getRoomData = async () => {
+  const room = await getRoomById(roomId.value);
+  roomData.value = room;
+};
+
 // 頁面初始化
 onMounted(async () => {
   // 從URL獲取房間ID
@@ -175,6 +180,8 @@ onMounted(async () => {
   } else {
     roomId.value = urlRoomId;
   }
+
+  await getRoomData();
 
   // 獲取參與者ID
   const savedParticipantId = localStorage.getItem('currentParticipantId');
@@ -206,11 +213,9 @@ onMounted(async () => {
     } else {
       // 如果沒有結果，且是房主，則發起API請求
       if (isRoomOwner.value) {
-        console.log('作為房主發起API請求...');
         await fetchRecommendations(roomData);
       } else {
         // 不是房主，等待結果
-        console.log('非房主，等待推薦結果...');
         waitForRecommendations();
       }
     }
@@ -222,6 +227,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
+});
+
+const roomName = computed(() => {
+  return roomData?.value?.name || '無法取得房間名稱'
 });
 
 // 返回首頁
@@ -337,7 +346,7 @@ const handleImageError = (e) => {
       <!-- 頭部 -->
       <div class="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
         <div class="flex flex-col items-center gap-2">
-          <h1 class="text-2xl font-bold">{{ roomStore?.roomName || '無法取得房間名稱' }}</h1>
+          <h1 class="text-2xl font-bold">{{ roomName }}</h1>
           <p class="text-sm">根據{{ votesData.length }}位成員的投票結果</p>
         </div>
       </div>
