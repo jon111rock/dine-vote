@@ -9,12 +9,14 @@ import { useToast } from '@/composables/useToast'
 import useGoogleMapsAutocomplete from '@/composables/maps/useGoogleMapsAutocomplete'
 import { useCurrentLocation } from '@/composables/maps/useCurrentLocation'
 import { useRoomStore } from '@/stores/room'
+import { useUserStore } from '@/stores'
 
 const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 const roomStore = useRoomStore()
 const auth = useAuth()
+const userStore = useUserStore()
 
 const roomName = ref('')
 const locationInput = ref(null)
@@ -64,12 +66,6 @@ const handleGetCurrentLocation = async () => {
 }
 
 const handleCreateRoom = async () => {
-  // 函數開頭檢查 Auth 狀態
-  if (!auth.isAuthReady.value) {
-    toast.error('正在確認登入狀態，請稍候...')
-    return
-  }
-
   if (!nicknameStorage.hasNickname()) {
     toast.error('請先設定暱稱')
     return
@@ -80,7 +76,7 @@ const handleCreateRoom = async () => {
     return
   }
 
-  if (!auth.user.value) {
+  if (!userStore.user) {
     toast.error('請先登入')
     router.push('/login')
     return
@@ -92,7 +88,7 @@ const handleCreateRoom = async () => {
 
     const roomData = {
       name: roomName.value.trim(),
-      userUid: auth.user.value.uid,
+      userUid: userStore.user.uid,
       displayName: displayName
     }
 
@@ -119,7 +115,7 @@ const handleCreateRoom = async () => {
     roomStore.setRoomStore({
       roomName: roomName.value.trim(),
       roomId: room.id,
-      roomOwner: auth.user.value.uid
+      roomOwner: userStore.user.uid
     })
     router.push(`/waiting-room?roomId=${room.id}`)
   } catch (err) {

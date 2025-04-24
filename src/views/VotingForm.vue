@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { useAuth } from '@/composables/auth/useAuth';
+import { useUserStore } from '@/stores';
 import { submitVote, watchRoomVotes, getRoomById } from '@/firebase/rooms';
 import OptionGroup from '@/components/voting/OptionGroup.vue';
 import BudgetSlider from '@/components/voting/BudgetSlider.vue';
@@ -12,7 +12,7 @@ import CommentInput from '@/components/voting/CommentInput.vue';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const auth = useAuth();
+const userStore = useUserStore();
 
 // 表單資料
 const selectedFood = ref(null);
@@ -69,7 +69,7 @@ const handleSubmit = async () => {
     return;
   }
 
-  if (!roomId.value || !auth.user.value?.uid) {
+  if (!roomId.value || !userStore.user?.uid) {
     toast.error('房間資訊不完整或未登入，請返回等待頁面');
     return;
   }
@@ -79,7 +79,7 @@ const handleSubmit = async () => {
 
   try {
     const voteData = getFormData();
-    await submitVote(roomId.value, auth.user.value.uid, voteData);
+    await submitVote(roomId.value, userStore.user.uid, voteData);
 
     isSubmitted.value = true;
     toast.success('投票成功！等待其他人完成投票...');
@@ -106,7 +106,7 @@ const startWatchingVotes = () => {
     votingStatus.value = data;
 
     // 檢查是否當前用戶已投票
-    const currentUserVote = data.votes.find(v => v.userUid === auth.user.value?.uid);
+    const currentUserVote = data.votes.find(v => v.userUid === userStore.user?.uid);
     if (currentUserVote && currentUserVote.voteStatus === 'completed') {
       isSubmitted.value = true;
     }
@@ -145,7 +145,7 @@ onMounted(() => {
   }
 
   // 檢查用戶是否已登入
-  if (!auth.user.value) {
+  if (!userStore.user) {
     toast.error('請先登入');
     router.push('/login');
     return;
@@ -172,11 +172,6 @@ onMounted(() => {
     const seconds = Math.floor((diff % 60000) / 1000);
     remainingTime.value = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }, 1000);
-});
-
-// 獲取房間資料
-onMounted(async () => {
-  await getRoomData();
 });
 
 const roomName = computed(() => {

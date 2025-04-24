@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
-import { useAuth } from '@/composables/auth/useAuth'
+import { useUserStore } from '@/stores'
 import { leaveRoom, getRoomById, watchRoom, updateRoomVotingStatus } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
@@ -14,7 +14,7 @@ const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 const modal = useModal()
-const auth = useAuth()
+const userStore = useUserStore()
 
 // 房間狀態
 const roomId = ref('')
@@ -111,7 +111,7 @@ const updateRoomState = (roomData) => {
   // 更新房間基本信息
   roomCode.value = roomData.roomCode
   roomOwnerId.value = roomData.ownerId
-  isOwner.value = roomData.ownerId === auth.user.value?.uid
+  isOwner.value = roomData.ownerId === userStore.user?.uid
 
   // 更新參與者
   updateParticipants(roomData.participants || {})
@@ -149,7 +149,7 @@ const handleRoomDeleted = () => {
  * 處理用戶離開房間
  */
 const handleLeaveRoom = async () => {
-  if (!roomId.value || !auth.user.value) {
+  if (!roomId.value || !userStore.user) {
     toast.error('系統錯誤')
     return
   }
@@ -158,7 +158,7 @@ const handleLeaveRoom = async () => {
     isLoading.value = true
 
     // 先進行離開房間的Firebase操作
-    await leaveRoom(roomId.value, auth.user.value.uid)
+    await leaveRoom(roomId.value, userStore.user.uid)
     toast.success('已離開房間')
 
     // 清除儲存的房間ID
@@ -256,7 +256,7 @@ const confirmStartVoting = async () => {
   try {
     isLoading.value = true
 
-    if (!auth.user.value) {
+    if (!userStore.user) {
       toast.error('您尚未登入，請先登入')
       isLoading.value = false
       return
@@ -270,7 +270,7 @@ const confirmStartVoting = async () => {
       await updateRoomVotingStatus(roomId.value, 'active')
     }
 
-    // 導航到投票頁面
+    // 跳轉到投票頁面
     isNavigating.value = true
     router.push(`/voting-form?roomId=${roomId.value}`)
   } catch (err) {
@@ -287,7 +287,7 @@ const confirmStartVoting = async () => {
 const handleVotingStarted = () => {
   if (isNavigating.value) return
 
-  if (!auth.user.value) {
+  if (!userStore.user) {
     toast.error('您尚未登入，請先登入')
     return
   }
@@ -313,7 +313,7 @@ onMounted(async () => {
   }
 
   // 檢查是否已登入
-  if (!auth.user.value) {
+  if (!userStore.user) {
     toast.error('請先登入')
     router.push('/login')
     return
@@ -393,10 +393,10 @@ onUnmounted(() => {
         <div class="grid grid-cols-4 gap-3 mt-4">
           <div v-for="(participant, participantId) in participants" :key="participantId" class="text-center member-item">
             <div :class="[getColorForUser(participantId), 'w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-1 joined-animation']">
-              {{ getFirstLetter(participant.userId) }}
+              {{ getFirstLetter(participant.displayName) }}
             </div>
             <div class="flex flex-col items-center">
-              <p class="text-sm text-gray-800">{{ participant.userId }}</p>
+              <p class="text-sm text-gray-800">{{ participant.displayName }}</p>
               <span v-if="checkIsOwner(participant)" class="text-xs text-green-600">房主</span>
             </div>
           </div>

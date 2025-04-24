@@ -2,7 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNicknameStorage } from '@/composables/storage/useNicknameStorage'
-import { useAuth } from '@/composables/auth/useAuth'
+import { useUserStore } from '@/stores'
 import { getRoomByCode, joinRoom } from '@/firebase/rooms'
 import NavigationBack from '@/components/common/NavigationBack.vue'
 import { useToast } from '@/composables/useToast'
@@ -13,7 +13,7 @@ const router = useRouter()
 const nicknameStorage = useNicknameStorage()
 const toast = useToast()
 const roomStore = useRoomStore()
-const auth = useAuth()
+const userStore = useUserStore()
 
 // 接收從路由傳遞的props
 const props = defineProps({
@@ -99,7 +99,7 @@ const handleJoinRoom = async () => {
     return
   }
 
-  if (!auth.user.value) {
+  if (!userStore.user) {
     toast.error('請先登入')
     router.push('/login')
     return
@@ -122,7 +122,7 @@ const handleJoinRoom = async () => {
 
     // 加入房間，使用用戶UID和暱稱
     const displayName = nicknameStorage.nickname.value
-    const result = await joinRoom(room.id, auth.user.value.uid, displayName)
+    const result = await joinRoom(room.id, userStore.user.uid, displayName)
 
     if (result.isExisting) {
       toast.info('使用已有的房間身份')
