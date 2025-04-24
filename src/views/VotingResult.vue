@@ -2,15 +2,13 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { getRoomVotes, getRecommendationResults } from '@/firebase/rooms';
+import { getRoomVotes, getRecommendationResults, getRoomById } from '@/firebase/rooms';
 import axios from 'axios';
-import { useRoomStore } from '@/stores/room';
 import { useRecommendations } from '@/composables/useRecommendations';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const { roomStore } = useRoomStore();
 const { getRecommendations } = useRecommendations();
 
 // 狀態
@@ -19,6 +17,7 @@ const isApiLoading = ref(false);
 const isWaitingForRecommendations = ref(false);
 const error = ref(null);
 const roomId = ref('');
+const roomData = ref(null);
 const participantId = ref('');
 const isRoomOwner = ref(false);
 const votesData = ref([]);
@@ -98,14 +97,12 @@ const fetchRecommendations = async (roomData) => {
     if (response.data && response.data.success) {
       recommendations.value = response.data.data.recommendations || [];
       analysisStats.value = response.data.data.analysisStats || null;
-      console.log('API回應成功:', response.data);
 
     } else {
       throw new Error(response.data?.error?.message || '獲取推薦失敗');
     }
 
   } catch (err) {
-    console.error('API回應失敗:', err);
     error.value = err.message;
     toast.error(`獲取餐廳推薦失敗: ${err.message}`);
   } finally {
@@ -116,11 +113,9 @@ const fetchRecommendations = async (roomData) => {
 // 定時檢查是否有推薦結果
 const checkForRecommendations = async () => {
   try {
-    console.log('檢查是否有推薦結果...');
     const results = await getRecommendations(roomId.value);
 
     if (results) {
-      console.log('已獲取推薦結果:', results);
       recommendations.value = results.data.recommendations || [];
       analysisStats.value = results.data.analysisStats || null;
       isWaitingForRecommendations.value = false;
@@ -128,7 +123,6 @@ const checkForRecommendations = async () => {
     }
     return false;
   } catch (err) {
-    console.error('檢查推薦結果失敗:', err);
     return false;
   }
 };
@@ -159,6 +153,12 @@ const waitForRecommendations = async () => {
   }, 60000);
 };
 
+// 獲取房間資料
+const getRoomData = async () => {
+  const room = await getRoomById(roomId.value);
+  roomData.value = room;
+};
+
 // 頁面初始化
 onMounted(async () => {
   // 從URL獲取房間ID
@@ -176,6 +176,8 @@ onMounted(async () => {
     roomId.value = urlRoomId;
   }
 
+  await getRoomData();
+
   // 獲取參與者ID
   const savedParticipantId = localStorage.getItem('currentParticipantId');
   if (savedParticipantId) {
@@ -187,41 +189,39 @@ onMounted(async () => {
     isLoading.value = true;
     const roomData = await getRoomVotes(roomId.value);
 
-    console.log('房間投票資料:', roomData);
     votesData.value = roomData.votes || [];
 
     // 確定當前用戶是否為房主
     if (participantId.value && roomData.votes) {
       const currentUserData = roomData.votes.find(v => v.participantId === participantId.value);
       isRoomOwner.value = currentUserData?.isOwner === true;
-      console.log('當前用戶是否為房主:', isRoomOwner.value);
     }
 
     // 檢查是否已有推薦結果
     const existingResults = await getRecommendationResults(roomId.value);
     if (existingResults) {
-      console.log('已有推薦結果:', existingResults);
       recommendations.value = existingResults.data.recommendations || [];
       analysisStats.value = existingResults.data.analysisStats || null;
     } else {
       // 如果沒有結果，且是房主，則發起API請求
       if (isRoomOwner.value) {
-        console.log('作為房主發起API請求...');
         await fetchRecommendations(roomData);
       } else {
         // 不是房主，等待結果
-        console.log('非房主，等待推薦結果...');
         waitForRecommendations();
       }
     }
 
   } catch (err) {
-    console.error('獲取投票資料失敗:', err);
     error.value = err.message;
     toast.error(`獲取投票資料失敗: ${err.message}`);
   } finally {
     isLoading.value = false;
   }
+});
+
+const roomName = computed(() => {
+  return roomData?.value?.name || '無法取得房間名稱'
 });
 
 // 返回首頁
@@ -242,7 +242,6 @@ const copyShareLink = () => {
       toast.success('已複製分享連結');
     })
     .catch(err => {
-      console.error('複製失敗:', err);
       toast.error('複製失敗');
     });
 };
@@ -337,7 +336,7 @@ const handleImageError = (e) => {
       <!-- 頭部 -->
       <div class="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
         <div class="flex flex-col items-center gap-2">
-          <h1 class="text-2xl font-bold">{{ roomStore?.roomName || '無法取得房間名稱' }}</h1>
+          <h1 class="text-2xl font-bold">{{ roomName }}</h1>
           <p class="text-sm">根據{{ votesData.length }}位成員的投票結果</p>
         </div>
       </div>

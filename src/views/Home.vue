@@ -40,7 +40,7 @@ const handleLogout = async () => {
 // 檢查URL參數
 onMounted(() => {
   initialize()
-  
+
   // 檢查是否有提示設置暱稱的標記
   const requireNickname = route.query.requireNickname === 'true'
   const roomCode = route.query.roomCode
@@ -78,7 +78,6 @@ const navigateToCreateRoom = () => {
 const navigateToJoinRoom = () => {
   router.push('/join-room')
 }
-console.log('version',import.meta.env.VITE_APP_VERSION);
 
 const version = computed(() => {
   return import.meta.env.VITE_APP_VERSION
