@@ -47,7 +47,6 @@ export const useUserStore = defineStore('user', () => {
       await signOut(auth)
       clearUser()
       nicknameStorage.clearNickname()
-      toast.success('登出成功')
       return true
     } catch (err) {
       error.value = err.message

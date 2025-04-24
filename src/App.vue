@@ -17,23 +17,6 @@ const isLogoutLoading = ref(false)
 onMounted(() => {
   initialize()
 })
-
-// 處理登出
-const handleLogout = async () => {
-  isLogoutLoading.value = true
-  try {
-    await logout()
-    toast.success('登出成功')
-    // 清除暱稱資料
-    nicknameStorage.clearNickname()
-    // 重定向至登入頁
-    router.push('/login')
-  } catch (error) {
-    toast.error('登出失敗：' + error.message)
-  } finally {
-    isLogoutLoading.value = false
-  }
-}
 </script>
 
 <template>
