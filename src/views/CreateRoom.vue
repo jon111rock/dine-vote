@@ -176,10 +176,10 @@ const handleCreateRoom = async () => {
             </select>
           </div>
         </div>
-        <div class="mt-6">
+        <!-- <div class="mt-6">
           <input v-model="isAnonymous" type="checkbox" id="isAnonymous" class="mr-2">
           <label for="isAnonymous" class="text-sm text-gray-600">匿名模式 (不顯示投票者)</label>
-        </div>
+        </div> -->
         <div class="mt-6">
           <button :disabled="isLoading || !roomName.trim() || !selectedPlace" @click="handleCreateRoom" class="w-full bg-red-gradient text-white py-3 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             {{ isLoading ? '創建中...' : '創建房間' }}
