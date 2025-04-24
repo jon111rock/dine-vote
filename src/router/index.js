@@ -83,6 +83,12 @@ const routes = [
     meta: { requiresGuest: true }
   },
   {
+    path: '/history',
+    name: 'VotingHistory',
+    component: () => import('@/views/VotingHistory.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }
@@ -124,9 +130,9 @@ router.beforeEach(async (to, from, next) => {
       const requiresNickname = ['JoinRoom', 'WaitingRoom', 'VotingForm', 'VotingResult'];
       
       // 檢查是否需要暱稱且用戶沒有設置暱稱
-      if (requiresNickname.includes(to.name) && !nicknameStorage.hasNickname()) {
-        // 不再嘗試使用用戶顯示名稱作為暱稱
-        // 由NicknameEditor組件使用defaultValue處理
+      if (requiresNickname.includes(to.name) && 
+          !nicknameStorage.hasNickname() && 
+          to.name !== 'Home') { 
         
         // 保存原始目標頁面資訊
         const redirectInfo = {
