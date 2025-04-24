@@ -58,8 +58,8 @@ const formatVotesForApi = (roomData) => {
   return roomData.votes
     .filter(vote => vote.voteData) // 只包含有投票資料的參與者
     .map(vote => ({
-      participantId: vote.participantId,
-      participantName: vote.userId || '匿名用戶',
+      participantId: vote.userUid,
+      participantName: vote.displayName || '匿名用戶',
       foodType: vote.voteData.flavor && vote.voteData.food
         ? `${vote.voteData.flavor}-${vote.voteData.food}`
         : (vote.voteData.flavor || vote.voteData.food || '未指定'),
