@@ -45,7 +45,6 @@ export function useAuth() {
   // 處理身份驗證錯誤
   const handleAuthError = (error) => {
     loading.value = false;
-    console.log('error', error.code);
     
     // 對應不同錯誤碼提供友好的錯誤信息
     const errorMessages = {
@@ -76,7 +75,6 @@ export function useAuth() {
       const message = 'Firebase配置錯誤：身份驗證服務未正確設置或API密鑰權限不足。請聯繫管理員。';
       error.value = message;
       toast.error(message);
-      console.error('Firebase配置問題:', error);
       return message;
     }
     

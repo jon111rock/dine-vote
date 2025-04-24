@@ -46,8 +46,7 @@ const isFormValid = computed(() => {
 // 獲取房間資料
 const getRoomData = async () => {
   const room = await getRoomById(roomId.value);
-  console.log('room',room);
-  
+
   roomData.value = room;
 };
 

@@ -97,14 +97,12 @@ const fetchRecommendations = async (roomData) => {
     if (response.data && response.data.success) {
       recommendations.value = response.data.data.recommendations || [];
       analysisStats.value = response.data.data.analysisStats || null;
-      console.log('API回應成功:', response.data);
 
     } else {
       throw new Error(response.data?.error?.message || '獲取推薦失敗');
     }
 
   } catch (err) {
-    console.error('API回應失敗:', err);
     error.value = err.message;
     toast.error(`獲取餐廳推薦失敗: ${err.message}`);
   } finally {
@@ -115,11 +113,9 @@ const fetchRecommendations = async (roomData) => {
 // 定時檢查是否有推薦結果
 const checkForRecommendations = async () => {
   try {
-    console.log('檢查是否有推薦結果...');
     const results = await getRecommendations(roomId.value);
 
     if (results) {
-      console.log('已獲取推薦結果:', results);
       recommendations.value = results.data.recommendations || [];
       analysisStats.value = results.data.analysisStats || null;
       isWaitingForRecommendations.value = false;
@@ -127,7 +123,6 @@ const checkForRecommendations = async () => {
     }
     return false;
   } catch (err) {
-    console.error('檢查推薦結果失敗:', err);
     return false;
   }
 };
@@ -194,20 +189,17 @@ onMounted(async () => {
     isLoading.value = true;
     const roomData = await getRoomVotes(roomId.value);
 
-    console.log('房間投票資料:', roomData);
     votesData.value = roomData.votes || [];
 
     // 確定當前用戶是否為房主
     if (participantId.value && roomData.votes) {
       const currentUserData = roomData.votes.find(v => v.participantId === participantId.value);
       isRoomOwner.value = currentUserData?.isOwner === true;
-      console.log('當前用戶是否為房主:', isRoomOwner.value);
     }
 
     // 檢查是否已有推薦結果
     const existingResults = await getRecommendationResults(roomId.value);
     if (existingResults) {
-      console.log('已有推薦結果:', existingResults);
       recommendations.value = existingResults.data.recommendations || [];
       analysisStats.value = existingResults.data.analysisStats || null;
     } else {
@@ -221,7 +213,6 @@ onMounted(async () => {
     }
 
   } catch (err) {
-    console.error('獲取投票資料失敗:', err);
     error.value = err.message;
     toast.error(`獲取投票資料失敗: ${err.message}`);
   } finally {
@@ -251,7 +242,6 @@ const copyShareLink = () => {
       toast.success('已複製分享連結');
     })
     .catch(err => {
-      console.error('複製失敗:', err);
       toast.error('複製失敗');
     });
 };

@@ -201,7 +201,6 @@ const handleRegister = async (e) => {
 
 // 社交媒體登入
 const handleSocialLogin = (provider) => {
-  console.log(`使用 ${provider} 登入`);
   toast.info(`${provider} 登入功能正在開發中`);
 };
 
