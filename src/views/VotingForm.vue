@@ -174,7 +174,12 @@ onMounted(() => {
   }, 1000);
 });
 
+onMounted(async () => {
+  await getRoomData();
+});
+
 const roomName = computed(() => {
+
   return roomData?.value?.name || '無法取得房間名稱'
 });
 
