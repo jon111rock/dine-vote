@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, readonly, onUnmounted } from 'vue';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -12,6 +12,7 @@ import { useToast } from '@/composables/useToast';
 export function useAuth() {
   const user = ref(null);
   const loading = ref(true);
+  const isAuthReady = ref(false);
   const error = ref(null);
   const toast = useToast();
   
@@ -32,9 +33,11 @@ export function useAuth() {
       } else {
         user.value = null;
       }
+      if (!isAuthReady.value) isAuthReady.value = true;
     }, (err) => {
       loading.value = false;
       error.value = err.message;
+      if (!isAuthReady.value) isAuthReady.value = true;
       toast.error(`驗證狀態監聽錯誤: ${err.message}`);
     });
     
@@ -156,9 +159,10 @@ export function useAuth() {
   };
   
   return {
-    user,
-    loading,
-    error,
+    user: readonly(user),
+    loading: readonly(loading),
+    error: readonly(error),
+    isAuthReady: readonly(isAuthReady),
     isAuthenticated,
     initialize,
     register,
