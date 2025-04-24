@@ -75,6 +75,12 @@ const goToProfile = () => {
   toast.info('個人資料功能開發中');
 }
 
+// 新增：導航到投票紀錄頁面
+const goToHistory = () => {
+  closeDropdown(); // 確保關閉下拉選單
+  router.push('/history'); // 導航到 /history 路由
+}
+
 // 處理點擊外部關閉下拉選單
 const handleClickOutside = (event) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
@@ -120,6 +126,12 @@ onUnmounted(() => {
 
       <!-- 選單項目 -->
       <div class="py-1">
+        <!-- 新增：投票紀錄按鈕 (暫時移除 DIcon) -->
+        <button @click="goToHistory" class="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center transition-colors">
+          <!-- <DIcon name="history" size="4" class="mr-2 text-gray-500" /> -->
+          <span class="ml-[calc(1rem+0.5rem)]">投票紀錄</span> <!-- 模擬圖標佔位 -->
+        </button>
+
         <!-- <button @click="goToProfile" class="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center transition-colors">
           <DIcon name="user" size="4" class="mr-2 text-gray-500" />
           <span>個人資料</span>
