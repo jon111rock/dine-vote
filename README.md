@@ -1,5 +1,9 @@
 # DineVote
 
+**Demo**: [https://dine-vote.firebaseapp.com/](https://dine-vote.firebaseapp.com/)
+
+**簡介**：一款協助群組決定用餐地點的多人連線投票應用程式，提供直覺的使用者介面與即時同步投票功能，提升決策效率與互動體驗。
+
 DineVote 是一個幫助群組決定用餐地點的投票應用程式。使用 Vue 3 + Vite 開發，提供直覺的使用者介面和即時投票功能。
 
 ## 功能特點
@@ -13,26 +17,30 @@ DineVote 是一個幫助群組決定用餐地點的投票應用程式。使用 V
 
 ## 技術棧
 
-- Vue 3 - 使用 Composition API 和 `<script setup>`
-- Vite - 快速開發和建置
-- Tailwind CSS - 現代化 UI 設計
-- Firebase - 即時資料庫和身份驗證
-- Vue Router - 路由管理
-- Pinia - 狀態管理
+- 前端：Vue 3 + Vite
+- 後端：Node.js + Express.js
+- 資料庫：Firebase Realtime Database
+- AI 整合：Google Gemini API
+- 樣式：Tailwind CSS
+- 路由：Vue Router
+- 狀態管理：Pinia
 
 ## 開發環境設定
 
 1. 安裝依賴：
+
 ```bash
 npm install
 ```
 
 2. 啟動開發伺服器：
+
 ```bash
 npm run dev
 ```
 
 3. 建置生產版本：
+
 ```bash
 npm run build
 ```
@@ -48,28 +56,3 @@ src/
 ├── stores/        # Pinia 狀態管理
 └── assets/        # 靜態資源
 ```
-
-## 開發規範
-
-- 使用 Vue 3 Composition API 和 `<script setup>`
-- 元件命名採用 PascalCase
-- 使用 Tailwind CSS 進行樣式設計
-- 遵循 Git Flow 工作流程
-- 提交訊息格式：`type(scope): message`
-
-## 環境變數
-
-建立 `.env` 檔案並設定以下變數：
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
-## 授權
-
-MIT License
